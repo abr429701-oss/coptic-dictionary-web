@@ -67,6 +67,8 @@ jobs:
 
       - uses: actions/configure-pages@v5
         if: steps.decide.outputs.deploy == 'true'
+        with:
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         if: steps.decide.outputs.deploy == 'true'
