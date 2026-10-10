@@ -28,7 +28,9 @@ const workerReady = new Promise((resolve, reject) => {
   resolveReady = resolve;
   rejectReady = reject;
 });
-const worker = new Worker(new URL("./search-worker.js", import.meta.url), { type: "module" });
+const workerUrl = new URL("./search-worker.js", import.meta.url);
+workerUrl.searchParams.set("v", "33f9e7e");
+const worker = new Worker(workerUrl, { type: "module" });
 
 function workerRequest(op, payload = {}) {
   const id = ++requestId;
