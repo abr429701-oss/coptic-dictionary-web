@@ -3,35 +3,82 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#173b31">
   <title>القاموس القبطي البحيري</title>
-  <meta name="description" content="القاموس الرقمي الناطق للغة القبطية البحيرية: ابحث بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية واستمع إلى النطق.">
-  <meta name="theme-color" content="#102a43">
+  <meta name="description" content="قاموس رقمي للغة القبطية البحيرية. ابحث بسرعة بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية.">
   <link rel="icon" href="assets/welcome.jpg">
   <link rel="preload" href="data/dictionary.json.gz" as="fetch" type="application/gzip" crossorigin>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <img class="avatar" src="assets/welcome.jpg" alt="" width="40" height="40">
-      <div class="titles">
-        <h1>القاموس القبطي البحيري</h1>
-        <p id="status">جارٍ تحميل القاموس…</p>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="الصفحة الرئيسية للقاموس">
+      <span class="brand-mark" aria-hidden="true">ⲙ</span>
+      <span class="brand-copy"><strong>القاموس القبطي البحيري</strong><small>مرجع لغوي سريع ومتعدد اللغات</small></span>
+    </a>
+    <div class="header-tools">
+      <span class="edition"><span class="edition-dot"></span> إصدار رقمي</span>
+      <a class="github-link" href="https://github.com/abr429701-oss/coptic-dictionary-web" target="_blank" rel="noreferrer">المشروع على GitHub <span aria-hidden="true">↗</span></a>
+    </div>
+  </header>
+
+  <main class="page-shell">
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow"><span class="eyebrow-line"></span> معجم قبطي بحيري</p>
+      <h1 id="page-title">كلمةٌ تفتح<br class="mobile-break"> بابًا إلى اللغة.</h1>
+      <p class="hero-copy">ابحث عن الكلمات القبطية ومعانيها بالعربية، أو ابدأ من أي لغة تعرفها.</p>
+      <div class="hero-stat"><strong id="recordCount">16,327</strong><span>مدخلًا لغويًا</span><span class="stat-divider"></span><span>٥ لغات للبحث</span></div>
+    </section>
+
+    <section class="search-card" aria-label="البحث في القاموس">
+      <form id="searchForm" class="search-form" role="search" autocomplete="off">
+        <label class="sr-only" for="input">ابحث في القاموس</label>
+        <span class="search-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></span>
+        <input id="input" type="search" dir="auto" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب كلمة بالقبطية أو العربية أو الإنجليزية…" aria-label="كلمة البحث">
+        <button id="clearBtn" class="clear-btn" type="button" aria-label="مسح البحث" title="مسح البحث" hidden>×</button>
+        <button class="search-btn" type="submit"><span>ابحث</span><kbd>↵</kbd></button>
+      </form>
+      <div class="search-meta"><span id="status" role="status">يُحضّر القاموس…</span><span class="shortcut-hint"><kbd>/</kbd> للبحث</span></div>
+      <div class="examples" id="examples" aria-label="أمثلة للبحث">
+        <span class="examples-label">جرّب:</span>
+        <button class="example-chip coptic" type="button" data-query="ⲁⲛⲁⲩ">ⲁⲛⲁⲩ</button>
+        <button class="example-chip" type="button" data-query="ماء">ماء</button>
+        <button class="example-chip" type="button" data-query="water">water</button>
+        <button class="example-chip" type="button" data-query="love">love</button>
       </div>
-      <button id="helpBtn" class="icon-btn" type="button" aria-label="مساعدة" title="مساعدة">؟</button>
-      <button id="clearBtn" class="icon-btn" type="button" aria-label="مسح المحادثة" title="مسح المحادثة">⟲</button>
-    </header>
+    </section>
 
-    <main id="chat" class="chat" aria-live="polite"></main>
+    <div class="workspace">
+      <section class="results-panel" aria-live="polite" aria-label="نتائج البحث">
+        <div class="section-heading">
+          <div><p class="section-kicker">مساحة البحث</p><h2 id="resultsTitle">ابدأ بكلمة تبحث عنها</h2></div>
+          <span id="resultBadge" class="result-badge">بحث مباشر</span>
+        </div>
+        <div id="results" class="results-content">
+          <div class="empty-state">
+            <span class="empty-glyph" aria-hidden="true">ⲁ</span>
+            <h3>قاموس، لا قوائم معقّدة.</h3>
+            <p>اكتب كلمة أو جزءًا منها لتظهر المطابقات فورًا. يعمل البحث بالقبطية والعربية والإنجليزية والفرنسية والألمانية.</p>
+          </div>
+        </div>
+      </section>
 
-    <form id="composer" class="composer" autocomplete="off">
-      <input id="input" type="text" dir="auto" enterkeyhint="search" autocapitalize="off" autocorrect="off" spellcheck="false"
-             placeholder="اكتب الكلمة أو أول حروفها" aria-label="كلمة البحث" disabled>
-      <button id="send" class="send" type="submit" aria-label="بحث" disabled>
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3.4 20.6 21 12 3.4 3.4l.1 6.7L15 12 3.5 13.9z" fill="currentColor"/></svg>
-      </button>
-    </form>
-  </div>
+      <aside class="guide-panel" aria-label="معلومات البحث">
+        <div class="guide-top"><span class="guide-icon" aria-hidden="true">⌕</span><span>دليل سريع</span></div>
+        <h2>ابحث بالطريقة التي تناسبك</h2>
+        <p>اكتب الكلمة كاملة أو أول حروفها. النتائج تُرتّب لتصل إلى المدخل والمعنى والنطق بأقل خطوات.</p>
+        <div class="language-list">
+          <div><span class="language-symbol coptic">Ⲁⲁ</span><span>القبطية</span><span class="language-arrow">←</span></div>
+          <div><span class="language-symbol">ع</span><span>العربية</span><span class="language-arrow">←</span></div>
+          <div><span class="language-symbol latin">Aa</span><span>English · Français · Deutsch</span><span class="language-arrow">←</span></div>
+        </div>
+        <div class="guide-note"><span aria-hidden="true">✦</span><span>اختر أي نتيجة لعرض تفاصيلها وسماع النطق المتاح.</span></div>
+      </aside>
+    </div>
+
+    <footer class="site-footer"><span>القاموس القبطي البحيري</span><span>أداة مفتوحة للبحث والتعلّم</span></footer>
+  </main>
+
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
