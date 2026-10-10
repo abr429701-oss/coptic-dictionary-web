@@ -329,22 +329,23 @@ clearBtn.addEventListener("click", () => {
 });
 
 // ---------- التحميل ----------
-async function load() {
+function load() {
   addWelcome();
-  try {
-    const count = await workerReady;
-    statusEl.textContent = `${count.toLocaleString("en-US")} سجلًا في القاموس`;
-  } catch (error) {
-    console.error(error);
-    statusEl.textContent = "تعذّر تحميل القاموس";
-    addBubble(el("div", { class: "msg" }, el("p", { text: "تعذّر تحميل محرك القاموس. تحقق من الاتصال ثم أعد تحميل الصفحة." })));
-    return;
-  }
   ready = true;
   input.disabled = false;
   sendBtn.disabled = false;
   input.placeholder = "اكتب الكلمة أو أول حروفها";
+  statusEl.textContent = "يُحضّر القاموس في الخلفية…";
   input.focus({ preventScroll: true });
+
+  workerReady.then((count) => {
+    statusEl.textContent = `${count.toLocaleString("en-US")} سجلًا في القاموس`;
+  }).catch((error) => {
+    console.error(error);
+    statusEl.textContent = "تعذّر تحميل القاموس";
+    addBubble(el("div", { class: "msg" }, el("p", { text: "تعذّر تحميل محرك القاموس. تحقق من الاتصال ثم أعد تحميل الصفحة." })));
+  });
+
   const initial = new URLSearchParams(location.search).get("q");
   if (initial) handleInput(initial);
 }

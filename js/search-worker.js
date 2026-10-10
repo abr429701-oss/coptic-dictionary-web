@@ -7,14 +7,39 @@ let nextActionId = 0;
 async function fetchDictionary() {
   const baseUrl = new URL(`../${CONFIG.DICTIONARY_URL}`, import.meta.url);
   const compressedUrl = new URL(`${baseUrl.href}.gz`);
+  let cache = null;
+  let cached = null;
+  let cacheStamp = null;
 
   try {
-    const compressed = await fetch(compressedUrl, { cache: "force-cache" });
-    if (!compressed.ok) throw new Error(`HTTP ${compressed.status}`);
+    cache = await caches.open("coptic-dictionary-data-v1");
+    cached = await cache.match(compressedUrl.href);
+    const stampResponse = await cache.match(`${compressedUrl.href}?cache-stamp=1`);
+    cacheStamp = stampResponse ? Number(await stampResponse.text()) : 0;
+  } catch {
+    // Cache Storage can be unavailable in private browsing; network loading still works.
+  }
+
+  const decode = async (response) => {
     if (typeof DecompressionStream !== "function") throw new Error("gzip decompression is not supported");
-    const stream = compressed.body.pipeThrough(new DecompressionStream("gzip"));
-    return await new Response(stream).json();
+    const stream = response.body.pipeThrough(new DecompressionStream("gzip"));
+    return new Response(stream).json();
+  };
+
+  if (cached && Date.now() - cacheStamp < 10 * 60 * 1000) return decode(cached);
+
+  try {
+    const compressed = await fetch(compressedUrl, { cache: "no-cache" });
+    if (!compressed.ok) throw new Error(`HTTP ${compressed.status}`);
+    if (cache) {
+      await cache.put(compressedUrl.href, compressed.clone());
+      await cache.put(`${compressedUrl.href}?cache-stamp=1`, new Response(String(Date.now())));
+    }
+    return await decode(compressed);
   } catch (compressedError) {
+    if (cached) {
+      try { return await decode(cached); } catch { /* try the legacy JSON fallback */ }
+    }
     // Fallback supports older browsers and local development without the generated .gz file.
     try {
       const response = await fetch(baseUrl, { cache: "force-cache" });
