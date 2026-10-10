@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>القاموس القبطي البحيري</title>
+  <meta name="description" content="القاموس الرقمي الناطق للغة القبطية البحيرية: ابحث بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية واستمع إلى النطق.">
+  <meta name="theme-color" content="#102a43">
+  <link rel="icon" href="assets/welcome.jpg">
+  <link rel="preload" href="data/dictionary.json" as="fetch" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <img class="avatar" src="assets/welcome.jpg" alt="" width="40" height="40">
+      <div class="titles">
+        <h1>القاموس القبطي البحيري</h1>
+        <p id="status">جارٍ تحميل القاموس…</p>
+      </div>
+      <button id="helpBtn" class="icon-btn" type="button" aria-label="مساعدة" title="مساعدة">؟</button>
+      <button id="clearBtn" class="icon-btn" type="button" aria-label="مسح المحادثة" title="مسح المحادثة">⟲</button>
+    </header>
+
+    <main id="chat" class="chat" aria-live="polite"></main>
+
+    <form id="composer" class="composer" autocomplete="off">
+      <input id="input" type="text" dir="auto" enterkeyhint="search" autocapitalize="off" autocorrect="off" spellcheck="false"
+             placeholder="اكتب الكلمة أو أول حروفها" aria-label="كلمة البحث" disabled>
+      <button id="send" class="send" type="submit" aria-label="بحث" disabled>
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M3.4 20.6 21 12 3.4 3.4l.1 6.7L15 12 3.5 13.9z" fill="currentColor"/></svg>
+      </button>
+    </form>
+  </div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

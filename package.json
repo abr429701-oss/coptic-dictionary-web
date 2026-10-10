@@ -1,0 +1,11 @@
+{
+  "name": "coptic-dictionary-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "موقع القاموس القبطي البحيري — نسخة ويب من بوت Telegram، تعمل على GitHub Pages",
+  "scripts": {
+    "test": "node --test",
+    "start": "python3 -m http.server 8000"
+  }
+}
