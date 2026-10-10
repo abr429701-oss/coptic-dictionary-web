@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { init, recordCount, search, spokenText, HELP_TEXT, WELCOME_TEXT, COMMAND_FALLBACK_TEXT } from "./engine.js";
+import { spokenText, HELP_TEXT, WELCOME_TEXT, COMMAND_FALLBACK_TEXT } from "./engine.js";
 
 const chat = document.getElementById("chat");
 const form = document.getElementById("composer");
@@ -11,6 +11,54 @@ const clearBtn = document.getElementById("clearBtn");
 
 let ready = false;
 let busy = false;
+const pendingRequests = new Map();
+let nextRequestId = 0;
+let resolveWorkerReady;
+let rejectWorkerReady;
+const workerReady = new Promise((resolve, reject) => {
+  resolveWorkerReady = resolve;
+  rejectWorkerReady = reject;
+});
+const searchWorker = new Worker(new URL("./search-worker.js", import.meta.url), { type: "module" });
+
+function hydrate(value) {
+  if (Array.isArray(value)) return value.map(hydrate);
+  if (!value || typeof value !== "object") return value;
+  if (Number.isInteger(value.__workerAction)) {
+    const actionId = value.__workerAction;
+    return () => workerRequest("action", { actionId });
+  }
+  return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, hydrate(child)]));
+}
+
+searchWorker.addEventListener("message", ({ data }) => {
+  if (data.type === "ready") {
+    resolveWorkerReady(data.count);
+    return;
+  }
+  if (data.type === "init-error") {
+    rejectWorkerReady(new Error(data.message));
+    return;
+  }
+  const pending = pendingRequests.get(data.id);
+  if (!pending) return;
+  pendingRequests.delete(data.id);
+  if (data.error) pending.reject(new Error(data.error));
+  else pending.resolve(hydrate(data.result));
+});
+searchWorker.addEventListener("error", (event) => {
+  rejectWorkerReady(event.error ?? new Error("تعذّر تشغيل محرك البحث"));
+  for (const pending of pendingRequests.values()) pending.reject(event.error ?? new Error("تعذّر تشغيل محرك البحث"));
+  pendingRequests.clear();
+});
+
+function workerRequest(op, payload = {}) {
+  const id = ++nextRequestId;
+  return new Promise((resolve, reject) => {
+    pendingRequests.set(id, { resolve, reject });
+    searchWorker.postMessage({ id, op, ...payload });
+  });
+}
 
 // ---------- أدوات DOM ----------
 function el(tag, props = {}, ...children) {
@@ -43,8 +91,19 @@ function fieldNode([label, value]) {
 
 function keyButton(text, onClick) {
   const button = el("button", { class: "key", type: "button", dir: "auto", text });
-  button.addEventListener("click", onClick);
+  button.addEventListener("click", () => {
+    Promise.resolve().then(onClick).catch((error) => console.error(error));
+  });
   return button;
+}
+
+async function showAction(action) {
+  try {
+    const result = await action();
+    if (result) showResult(result);
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 // يملأ فقاعة بمحتوى رسالة (entry / suggest / text).
@@ -59,7 +118,7 @@ function fill(bubble, msg) {
     msg.fields.forEach((field) => bubble.append(fieldNode(field)));
     if (msg.more) {
       const keys = el("div", { class: "keys" });
-      const button = keyButton(msg.more.text, () => showResult(msg.more.run()));
+      const button = keyButton(msg.more.text, () => showAction(msg.more.run));
       keys.append(button);
       bubble.append(keys);
       bubble.classList.add("wide");
@@ -70,12 +129,12 @@ function fill(bubble, msg) {
   bubble.classList.add("wide");
   bubble.append(el("p", { dir: "auto", text: msg.title }));
   const keys = el("div", { class: "keys" });
-  msg.buttons.forEach((b) => keys.append(keyButton(b.text, () => showResult(b.run()))));
+  msg.buttons.forEach((b) => keys.append(keyButton(b.text, () => showAction(b.run))));
   bubble.append(keys);
   if (msg.nav.length) {
     const nav = el("div", { class: "keys nav" });
-    msg.nav.forEach((b) => nav.append(keyButton(b.text, () => {
-      const next = b.run();
+    msg.nav.forEach((b) => nav.append(keyButton(b.text, async () => {
+      const next = await b.run();
       if (next) {
         fill(bubble, next);
         bubble.scrollIntoView({ block: "nearest" });
@@ -243,7 +302,7 @@ async function handleInput(raw) {
     await new Promise((resolve) => setTimeout(resolve, 0));   // دع المتصفح يرسم مؤشر الكتابة قبل بناء الفهارس أول مرة
     let result = null;
     try {
-      result = search(text);
+      result = await workerRequest("search", { query: text });
     } catch (error) {
       console.error(error);
     }
@@ -273,17 +332,15 @@ clearBtn.addEventListener("click", () => {
 async function load() {
   addWelcome();
   try {
-    const response = await fetch(CONFIG.DICTIONARY_URL);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    init(await response.json());
+    const count = await workerReady;
+    statusEl.textContent = `${count.toLocaleString("en-US")} سجلًا في القاموس`;
   } catch (error) {
     console.error(error);
     statusEl.textContent = "تعذّر تحميل القاموس";
-    addBubble(el("div", { class: "msg" }, el("p", { text: "تعذّر تحميل ملف القاموس. تحقق من الاتصال ثم أعد تحميل الصفحة." })));
+    addBubble(el("div", { class: "msg" }, el("p", { text: "تعذّر تحميل محرك القاموس. تحقق من الاتصال ثم أعد تحميل الصفحة." })));
     return;
   }
   ready = true;
-  statusEl.textContent = `${recordCount().toLocaleString("en-US")} سجلًا في القاموس`;
   input.disabled = false;
   sendBtn.disabled = false;
   input.placeholder = "اكتب الكلمة أو أول حروفها";

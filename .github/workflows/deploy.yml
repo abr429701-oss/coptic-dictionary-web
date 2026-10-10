@@ -63,7 +63,7 @@ jobs:
           mkdir _site
           cp -r index.html css js fonts assets audio-human _site/
           mkdir _site/data
-          cp data/dictionary.json _site/data/
+          gzip -9 -c data/dictionary.json > _site/data/dictionary.json.gz
 
       - uses: actions/configure-pages@v5
         if: steps.decide.outputs.deploy == 'true'
