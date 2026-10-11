@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { spokenText } from "./engine.js";
+import { spokenText } from "./engine.js?v=fast1";
 
 const form = document.getElementById("searchForm");
 const input = document.getElementById("input");
@@ -29,7 +29,7 @@ const workerReady = new Promise((resolve, reject) => {
   rejectReady = reject;
 });
 const workerUrl = new URL("./search-worker.js", import.meta.url);
-workerUrl.searchParams.set("v", "33f9e7e");
+workerUrl.searchParams.set("v", "fast1");
 const worker = new Worker(workerUrl, { type: "module" });
 
 function workerRequest(op, payload = {}) {
@@ -280,14 +280,20 @@ async function runSearch(rawQuery, { updateAddress = true } = {}) {
   }
 
   const sequence = ++searchSequence;
-  statusEl.textContent = `البحث في ${recordCountEl.textContent} مدخل…`;
-  renderLoading(query);
+  // لا نُظهر مؤشر التحميل إلا إذا تأخر البحث، فلا يومض بين الضغطات.
+  const loadingTimer = setTimeout(() => {
+    if (sequence !== searchSequence) return;
+    statusEl.textContent = `البحث في ${recordCountEl.textContent} مدخل…`;
+    renderLoading(query);
+  }, 150);
   try {
     const result = await workerRequest("search", { query });
+    clearTimeout(loadingTimer);
     if (sequence !== searchSequence) return;
     statusEl.textContent = "اكتمل البحث";
     renderMessage(result, query);
   } catch (error) {
+    clearTimeout(loadingTimer);
     if (sequence !== searchSequence) return;
     console.error(error);
     statusEl.textContent = "تعذّر البحث";
@@ -414,7 +420,7 @@ input.addEventListener("input", () => {
     void runSearch("");
     return;
   }
-  if ([...query].length >= 2) debounceTimer = setTimeout(() => { void runSearch(query); }, 220);
+  void runSearch(query);
 });
 clearBtn.addEventListener("click", () => {
   clearTimeout(debounceTimer);

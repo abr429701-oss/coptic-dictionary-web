@@ -1,5 +1,5 @@
 import { CONFIG } from "./config.js";
-import { init, recordCount, search } from "./engine.js";
+import { init, recordCount, search, warmupSteps } from "./engine.js?v=fast1";
 
 const actions = new Map();
 let nextActionId = 0;
@@ -26,20 +26,28 @@ async function fetchDictionary() {
     return new Response(stream).json();
   };
 
-  if (cached && Date.now() - cacheStamp < 10 * 60 * 1000) return decode(cached);
-
-  try {
-    const compressed = await fetch(compressedUrl, { cache: "no-cache" });
-    if (!compressed.ok) throw new Error(`HTTP ${compressed.status}`);
+  const refresh = async () => {
+    const response = await fetch(compressedUrl, { cache: "no-cache" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
     if (cache) {
-      await cache.put(compressedUrl.href, compressed.clone());
+      await cache.put(compressedUrl.href, response.clone());
       await cache.put(`${compressedUrl.href}?cache-stamp=1`, new Response(String(Date.now())));
     }
-    return await decode(compressed);
+    return response;
+  };
+
+  // من الكاش فورًا، ويُحدَّث في الخلفية للزيارة القادمة (إن مرّت أكثر من 10 دقائق).
+  if (cached) {
+    try {
+      const data = await decode(cached.clone());
+      if (Date.now() - cacheStamp >= 10 * 60 * 1000) refresh().catch(() => {});
+      return data;
+    } catch { /* الكاش تالف: حمّل من الشبكة */ }
+  }
+
+  try {
+    return await decode(await refresh());
   } catch (compressedError) {
-    if (cached) {
-      try { return await decode(cached); } catch { /* try the legacy JSON fallback */ }
-    }
     // Fallback supports older browsers and local development without the generated .gz file.
     try {
       const response = await fetch(baseUrl, { cache: "force-cache" });
@@ -90,3 +98,11 @@ self.addEventListener("message", ({ data }) => {
     self.postMessage({ id, error: error?.message ?? "search failed" });
   }
 });
+
+// بعد أن صار القاموس جاهزًا للبحث، تُبنى الفهارس في الخلفية خطوة خطوة (البحث يتقدّم عليها).
+(async () => {
+  for (const step of warmupSteps()) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    try { step(); } catch { /* تُبنى عند الحاجة */ }
+  }
+})();

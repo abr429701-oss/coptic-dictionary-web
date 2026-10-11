@@ -17,6 +17,22 @@ export function init(data) {
 }
 export const recordCount = () => records.length;
 
+// خطوات بناء الفهارس مسبقًا. يشغّلها الـ Worker واحدة تلو الأخرى بعد التحميل،
+// بحيث لا يتأخر أي بحث أكثر من خطوة واحدة، ويصير كل بحث بعدها فوريًا.
+export function warmupSteps() {
+  return [
+    () => searchIndex(),
+    () => wordIndex("en"),
+    () => wordIndex("fr"),
+    () => wordIndex("de"),
+    () => wordIndex("cop"),
+    () => wordIndex("ar"),
+    () => wordIndex("other"),
+    () => sameWordRows(),
+    () => recordIndexById(),
+  ];
+}
+
 const ACCENT_MAP = { ὲ: "ⲉ", έ: "ⲉ", ὶ: "ⲓ", ί: "ⲓ", ὸ: "ⲟ", ό: "ⲟ", ὼ: "ⲱ", ώ: "ⲱ", ὴ: "ⲏ", ή: "ⲏ", ὰ: "ⲁ", ά: "ⲁ", ὺ: "ⲩ", ύ: "ⲩ" };
 const ALEF_MAP = { أ: "ا", إ: "ا", آ: "ا", ٱ: "ا", ى: "ي", ة: "ه" };
 
