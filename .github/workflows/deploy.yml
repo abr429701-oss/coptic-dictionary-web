@@ -1,16 +1,15 @@
 name: Deploy dictionary website
 
-# يعمل عند كل Push إلى main، وكل 30 دقيقة لمزامنة القاموس من Google Sheets (مثل بوت Telegram الأصلي)،
-# وعند الضغط على Run workflow. يُنشر الموقع على GitHub Pages.
+# ينشر الموقع على GitHub Pages عند كل Push.
+# القاموس نفسه يسحبه المتصفح مباشرة من Google Sheets (مع نسخة محلية في جهاز الزائر)،
+# لذلك لا توجد خطوة بناء بيانات هنا إطلاقًا.
 on:
   push:
     branches: [main]
-  schedule:
-    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -21,63 +20,28 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      deploy: ${{ steps.decide.outputs.deploy }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Build dictionary.json from the Google Sheet
-        run: python3 scripts/sheet_to_json.py
-
       - name: Run tests
         run: node --test
 
-      - name: Commit data if it changed
-        id: commit
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data
-          if git diff --cached --quiet; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-          else
-            git commit -m "Sync dictionary from Google Sheet"
-            git push
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Decide whether to deploy
-        id: decide
-        run: |
-          # A scheduled run only redeploys when the dictionary actually changed.
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "${{ steps.commit.outputs.changed }}" != "true" ]; then
-            echo "deploy=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "deploy=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Stage the site files
-        if: steps.decide.outputs.deploy == 'true'
         run: |
           mkdir _site
-          cp -r index.html css js fonts assets audio-human _site/
-          mkdir _site/data
-          gzip -9 -c data/dictionary.json > _site/data/dictionary.json.gz
+          cp -r index.html css js fonts assets audio-human data _site/
 
       - uses: actions/configure-pages@v5
-        if: steps.decide.outputs.deploy == 'true'
         with:
           enablement: true
 
       - uses: actions/upload-pages-artifact@v3
-        if: steps.decide.outputs.deploy == 'true'
         with:
           path: _site
 
   deploy:
     needs: build
-    if: needs.build.outputs.deploy == 'true'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
