@@ -27,10 +27,9 @@ jobs:
       - name: Run tests
         run: node --test
 
-      - name: Stage the site files
-        run: |
-          mkdir _site
-          cp -r index.html css js fonts assets audio-human data _site/
+      - name: Build the site (sharded search index + static files)
+        if: steps.decide.outputs.deploy == 'true'
+        run: node scripts/build-site.mjs data/dictionary.json _site
 
       - uses: actions/configure-pages@v5
         with:
