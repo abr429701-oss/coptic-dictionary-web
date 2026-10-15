@@ -94,7 +94,7 @@ for (const [key, entries] of groups) place(key, entries, 2);
 const details = {};
 records.forEach((r, n) => {
   const block = Math.floor(n / DETAIL_SIZE);
-  (details[block] ??= {})[n] = [r.coptic, r.greek, r.pronunciation, r.english, r.phonetic, r.kind, r.gender, r.origin, r.translation_en, r.translation_fr, r.translation_de, r.meaning, r.id ?? ""];
+  (details[block] ??= {})[n] = [r.coptic, r.greek, r.pronunciation, r.english, r.phonetic, r.kind, r.gender, r.origin, r.translation_en, r.translation_fr, r.translation_de, r.meaning, r.id ?? "", r.referenceMatches ?? []];
 });
 for (const [block, rows] of Object.entries(details)) writeFileSync(`${OUT}/d/${block}.json`, JSON.stringify(rows));
 
@@ -112,7 +112,7 @@ for (const file of readdirSync("js").filter((f) => f.endsWith(".js"))) writeFile
 cpSync("css/app.css", `${OUT}/css/app.css`);
 cpSync("sw.js", `${OUT}/sw.js`);
 cpSync("manifest.webmanifest", `${OUT}/manifest.webmanifest`);
-for (const dir of ["fonts", "assets", "audio-human"]) if (existsSync(dir)) cpSync(dir, `${OUT}/${dir}`, { recursive: true });
+for (const dir of ["fonts", "assets", "audio-human", "audio-appscript"]) if (existsSync(dir)) cpSync(dir, `${OUT}/${dir}`, { recursive: true });
 writeFileSync(`${OUT}/index.html`, readFileSync("index.html", "utf8").replaceAll("__B__", B).replace("null; /*MANIFEST*/", `${JSON.stringify(manifest)};`));
 writeFileSync(`${OUT}/.nojekyll`, "");
 console.log(`build=${B} records=${records.length} tokens=${tokenMap.size} shards=${keys.length} indexBytes=${bytes} detailBlocks=${Object.keys(details).length} v=${hash}`);

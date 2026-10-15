@@ -1,75 +1,78 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>ⲭⲏⲙⲓ — القاموس القبطي</title>
-  <meta name="description" content="قاموس قبطي بحيري سريع: ابحث بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية، واستمع إلى النطق.">
-  <meta name="theme-color" content="#8f2d1e">
+  <meta name="description" content="ابحث في القاموس القبطي البحيري بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية، واستمع إلى النطق وشارك النتيجة.">
+  <meta name="theme-color" content="#090909">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="apple-touch-icon" href="assets/icon-192.png">
   <link rel="preload" href="fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/gabriel_arshiagelos.ttf" as="font" type="font/ttf" crossorigin>
   <link rel="stylesheet" href="css/app.css?b=__B__">
   <script>window.__MANIFEST__ = null; /*MANIFEST*/</script>
-  <script>try{var t=localStorage.getItem("theme");if(t)document.documentElement.dataset.theme=t}catch(e){}</script>
 </head>
 <body>
-  <a class="skip" href="#q">انتقل إلى البحث</a>
-
-  <header class="top">
-    <a class="brand" href="./" aria-label="ⲭⲏⲙⲓ — القاموس القبطي">
-      <span class="brand-mark" aria-hidden="true">ⲭ</span>
-      <span class="brand-text"><strong class="cop">ⲭⲏⲙⲓ</strong><span>القاموس القبطي</span></span>
-    </a>
-    <button class="icon-btn" id="themeBtn" type="button" aria-label="تبديل المظهر" title="تبديل المظهر">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 14.5A8.5 8.5 0 0 1 9.5 3.6 8.5 8.5 0 1 0 20.4 14.5Z"/></svg>
+  <a class="skip" href="#wordInput">انتقل إلى البحث</a>
+  <div class="page-wrap">
+    <button id="registerButton" class="register-button" type="button" title="التسجيل لفتح البحث">
+      <span aria-hidden="true">♙</span> تسجيل
     </button>
-  </header>
 
-  <main class="shell" id="app">
-    <section class="hero" id="hero">
+    <main class="container" id="app">
       <p class="eyebrow">اللغة القبطية · اللهجة البحيرية</p>
-      <h1>كلمةٌ تفتح بابًا<br>إلى اللغة القبطية</h1>
-      <p class="lead">ابحث بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية، وتظهر النتائج أثناء الكتابة.</p>
-    </section>
+      <h1>القاموس القبطي <span class="cop">Ⲭⲏⲙⲓ</span></h1>
+      <div class="date-display" id="date-display" aria-live="off"></div>
+      <p class="intro">ابحث بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية</p>
 
-    <div class="searchbar" id="searchbar">
-      <form id="form" role="search" autocomplete="off">
-        <label class="sr" for="q">ابحث في القاموس</label>
-        <svg class="s-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        <input id="q" type="search" dir="auto" enterkeyhint="search" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب كلمة…" aria-controls="list" aria-label="كلمة البحث">
-        <button class="clear" id="clear" type="button" aria-label="مسح" hidden>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
-        </button>
-        <button class="kb-btn cop" id="kbBtn" type="button" aria-label="لوحة الحروف القبطية" aria-expanded="false" title="لوحة الحروف القبطية">ⲁ</button>
-      </form>
-      <div class="keypad" id="keypad" hidden></div>
-    </div>
-
-    <div class="chips" id="chips" aria-label="اقتراحات"></div>
-
-    <div class="workspace">
-      <section class="results" aria-label="نتائج البحث">
-        <div class="status" id="status" role="status" aria-live="polite"></div>
-        <ul class="list" id="list"></ul>
+      <section class="search-area" aria-label="البحث في القاموس">
+        <form id="searchForm" role="search" autocomplete="off">
+          <label class="sr" for="wordInput">أدخل كلمة للبحث</label>
+          <input id="wordInput" type="search" dir="auto" enterkeyhint="search" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="أدخل الكلمة هنا..." aria-controls="suggestions">
+          <button id="clearButton" class="clear-button" type="button" aria-label="مسح البحث" hidden>×</button>
+          <button id="keyboardTrigger" class="keyboard-trigger cop" type="button" aria-label="لوحة المفاتيح القبطية" aria-expanded="false">ⲁ</button>
+        </form>
+        <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
+        <div id="coptic-keyboard" class="coptic-keyboard" hidden aria-label="لوحة المفاتيح القبطية"></div>
+        <button id="searchButton" class="search-button" type="submit" form="searchForm">ابحث</button>
+        <p id="quotaNote" class="quota-note" aria-live="polite"></p>
       </section>
 
-      <aside class="panel" id="panel" aria-label="تفاصيل الكلمة" aria-hidden="true">
-        <div class="panel-bar">
-          <button class="icon-btn" id="closePanel" type="button" aria-label="إغلاق">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
-          </button>
-        </div>
-        <div class="panel-body" id="panelBody"></div>
-      </aside>
-    </div>
-  </main>
+      <section class="results-area" aria-label="نتائج البحث">
+        <div id="loaderContainer" class="loader-container" hidden><span class="loader" aria-hidden="true"></span><span>جاري البحث…</span></div>
+        <div id="searchMessage" class="search-message" role="status" aria-live="polite"></div>
+        <div id="results-container" class="results-container"></div>
+      </section>
 
-  <div class="backdrop" id="backdrop" hidden></div>
-  <footer class="foot"><span class="cop">ⲭⲏⲙⲓ</span><span>القاموس القبطي · <span id="count"></span> مدخل</span></footer>
+      <footer class="site-footer">
+        <a class="learn-link" href="https://t.me/Coptic2_bot" target="_blank" rel="noopener noreferrer">إذا أردت تعلم اللغة القبطية من الصفر اضغط هنا</a>
+        <div class="footer-meta"><span>ⲭⲏⲙⲓ · <b id="count">16,346</b> مدخل</span><span>صورة الخلفية: Kallerna / Wikimedia Commons · <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a></span><span>الخط القبطي: Naqlun · Gabriel Arshiagelos</span></div>
+        <span class="author">مصمم بواسطة <a href="https://wa.me/201207829388" target="_blank" rel="noopener noreferrer">Abram</a></span>
+      </footer>
+    </main>
+  </div>
 
+  <div id="notificationBar" class="notification-bar" role="status" hidden>هناك إشعار جديد!</div>
+  <button id="notificationsButton" class="notifications-button" type="button" aria-label="الإشعارات" aria-expanded="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="notificationBadge" class="notification-badge" hidden></span>
+  </button>
+  <section id="notificationsWindow" class="notifications-window" aria-label="الإشعارات" hidden>
+    <div class="notification-header"><h2>الإشعارات الجديدة</h2><button id="closeNotifications" type="button" aria-label="إغلاق الإشعارات">×</button></div>
+    <div id="notificationsList" class="notifications-list"><p class="notification-empty">جاري تحميل الإشعارات…</p></div>
+  </section>
+
+  <div id="soundEffects" class="sr" aria-hidden="true">
+    <audio id="clickSound" preload="none" src="https://assets.mixkit.co/active_storage/sfx/1113/1113.wav"></audio>
+    <audio id="copySound" preload="none" src="https://assets.mixkit.co/active_storage/sfx/2999/2999-preview.mp3"></audio>
+    <audio id="successSound" preload="none" src="https://assets.mixkit.co/active_storage/sfx/933/933.wav"></audio>
+    <audio id="errorSound" preload="none" src="https://assets.mixkit.co/active_storage/sfx/1110/1110.wav"></audio>
+  </div>
+  <div id="shareStage" class="share-stage" aria-hidden="true"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
   <script type="module" src="js/app.js?b=__B__"></script>
 </body>
 </html>

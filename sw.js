@@ -14,7 +14,7 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin || !/\/(i|d|fonts)\//u.test(url.pathname)) return;
+  if (url.origin !== self.location.origin || !/\/(i|d|fonts|audio-appscript|audio-human)\//u.test(url.pathname)) return;
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     const hit = await cache.match(request);

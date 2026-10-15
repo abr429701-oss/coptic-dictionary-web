@@ -1,394 +1,382 @@
 import { init, search, detail, count, matchParts } from "./search.js?b=__B__";
 import { spokenText } from "./speech.js?b=__B__";
 
-// ---- إعدادات ----
 const AUDIO_BASE = "https://raw.githubusercontent.com/abr429701-oss/coptic-dictionary-bot/audio";
 const HUMAN_AUDIO = "audio-human";
-const EXAMPLES = ["ⲁⲛⲁⲩ", "ماء", "water", "حب", "ⲙⲟⲩ"];
-const KEYS = "ⲁ ⲃ ⲅ ⲇ ⲉ ⲍ ⲏ ⲑ ⲓ ⲕ ⲗ ⲙ ⲛ ⲝ ⲟ ⲡ ⲣ ⲥ ⲧ ⲩ ⲫ ⲭ ⲯ ⲱ ϣ ϥ ϧ ϩ ϫ ϭ ϯ".split(" ");
-
+let humanAudioIds = new Set();
+const humanAudioReady = fetch(`${HUMAN_AUDIO}/manifest.json`).then((response) => response.json()).then((ids) => { humanAudioIds = new Set(ids.map(Number)); }).catch(() => {});
+const REGISTER_URL = "https://copticdictionry.neocities.org/login";
+const SHEET_ID = "17n8MgiCIe4xVRXqM7W74zCSeqwo6pX8L-Pj2wSsl0ek";
+const NOTIFICATIONS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out%3Acsv&sheet=bot&range=B2%3AB`;
+const MAX_FREE_SEARCHES = 2;
+const KEYS = [
+  ["ⲁ","ⲃ","ⲅ","ⲇ","ⲉ","ⲋ"], ["ⲍ","ⲏ","ⲑ","ⲓ","ⲕ","ⲗ"], ["ⲙ","ⲛ","ⲝ","ⲟ","ⲡ","ⲣ"],
+  ["ⲥ","ⲧ","ⲩ","ⲫ","ⲭ","ⲯ"], ["ⲱ","ϣ","ϥ","ϧ","ϩ","ϫ"], ["ϭ","ϯ","ⳉ","̀"]
+];
 const $ = (id) => document.getElementById(id);
-const input = $("q"), form = $("form"), clearBtn = $("clear"), kbBtn = $("kbBtn"), keypad = $("keypad");
-const listEl = $("list"), statusEl = $("status"), chipsEl = $("chips");
-const panel = $("panel"), panelBody = $("panelBody"), backdrop = $("backdrop");
-const wide = window.matchMedia("(min-width: 980px)");
-
-let seq = 0;
-let items = [];
-let selected = -1;
-let activeId = null;
-let lastQuery = "";
-
-function el(tag, props = {}, ...kids) {
-  const node = document.createElement(tag);
-  for (const [k, v] of Object.entries(props)) {
-    if (k === "class") node.className = v;
-    else if (k === "text") node.textContent = v;
-    else if (v !== false && v != null) node.setAttribute(k, v === true ? "" : v);
-  }
-  for (const kid of kids) if (kid != null) node.append(kid);
-  return node;
-}
-const copText = (s) => String(s ?? "").replaceAll("`", "\u0300");
-const hasCoptic = (s) => /[\u2c80-\u2cff\u03e2-\u03ef]/u.test(s);
-const ICON = {
-  chev: '<svg viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>',
-  play: '<svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z"/></svg>',
-  stop: '<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7zm6 0h4v14h-4z"/></svg>',
-  copy: '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15"/></svg>',
-  share: '<svg viewBox="0 0 24 24"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg>',
-};
-const withIcon = (html, text) => { const s = el("span"); s.innerHTML = html; return [s.firstChild, text]; };
-
-// ---- تخزين محلي آمن ----
+const input = $("wordInput"), form = $("searchForm"), clearButton = $("clearButton");
+const suggestions = $("suggestions"), keyboard = $("coptic-keyboard"), searchButton = $("searchButton");
+const resultsContainer = $("results-container"), message = $("searchMessage"), loader = $("loaderContainer");
 const store = {
   get(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } },
-  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* مغلق في التصفح الخاص */ } },
+  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private browsing */ } }
 };
-
-// ---- الحالة والرسائل ----
-function setStatus(text) { statusEl.textContent = text; }
-function toast(text) {
-  const t = el("div", { class: "toast", text });
-  Object.assign(t.style, { position: "fixed", insetInline: "0", bottom: "calc(24px + env(safe-area-inset-bottom))", margin: "0 auto", width: "fit-content", maxWidth: "88vw", padding: "10px 18px", borderRadius: "999px", background: "var(--ink)", color: "var(--bg)", zIndex: 99, fontSize: "14px" });
-  document.body.append(t);
-  setTimeout(() => t.remove(), 1800);
-}
-
-// ---- البحث ----
-function showMessage(title, text) {
-  items = []; selected = -1;
-  listEl.replaceChildren(el("li", {}, el("div", { class: "empty" }, el("b", { text: title }), text)));
-}
-
-function meaningNode(meaning, query) {
-  const node = el("span", { class: "m" });
-  const list = matchParts(meaning, query);
-  list.forEach((part, i) => {
-    if (i) node.append("، ");
-    node.append(part.matched ? el("mark", { text: part.text }) : part.text);
-  });
+const clean = (s) => String(s ?? "").replaceAll("`", "̀");
+const make = (tag, attrs = {}, ...children) => {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (key === "text") node.textContent = value;
+    else if (key === "class") node.className = value;
+    else if (key === "html") node.innerHTML = value;
+    else if (value !== false && value != null) node.setAttribute(key, value === true ? "" : value);
+  }
+  for (const child of children) if (child != null) node.append(child);
   return node;
+};
+function toast(text) {
+  const node = make("div", { class: "toast", text });
+  Object.assign(node.style, { position: "fixed", insetInline: "0", bottom: "calc(20px + env(safe-area-inset-bottom))", margin: "0 auto", width: "fit-content", maxWidth: "88vw", padding: "10px 18px", borderRadius: "999px", background: "#211d10", border: "1px solid #b99a31", color: "#f3db63", zIndex: 99, fontSize: "14px", boxShadow: "0 8px 20px #0009" });
+  document.body.append(node); setTimeout(() => node.remove(), 2200);
+}
+function playSfx(id) { const audio = $(id); if (audio) { audio.currentTime = 0; audio.play().catch(() => {}); } }
+function updateDate() {
+  const now = new Date();
+  const months = ["توت","بابه","هاتور","كيهك","طوبة","أمشير","برمهات","برمودة","بشنس","بؤونة","أبيب","مسرى","النسئ"];
+  const epoch = new Date(284, 7, 29);
+  const diff = Math.floor((now - epoch) / 86400000);
+  const year = Math.floor(diff / 365.25);
+  let dayOfYear = diff - Math.floor(year * 365.25), month = 0;
+  while (dayOfYear >= 30 && month < 12) { dayOfYear -= 30; month++; }
+  const coptic = `${dayOfYear + 1} ${months[month]} ${year + 1}`;
+  const weekday = new Intl.DateTimeFormat("ar-EG", { weekday: "long" }).format(now);
+  const gregorian = new Intl.DateTimeFormat("ar-EG", { year: "numeric", month: "long", day: "numeric" }).format(now);
+  $("date-display").replaceChildren(make("div", { text: weekday }), make("div", { text: coptic }), make("div", { text: gregorian }));
 }
 
-function renderResults(query, data) {
-  items = data.results;
-  selected = -1;
-  if (!items.length) {
-    const one = [...query].length < 2;
-    showMessage(one ? "اكتب حرفًا آخر" : "لا توجد نتيجة مطابقة", one ? "ابدأ بحرفين على الأقل لتظهر المطابقات." : "جرّب كتابة أول حروف الكلمة، أو اللغة المعتادة لك (قبطي أو عربي أو إنجليزي).");
-    setStatus("");
-    return;
+// الحدّ محلي في هذا المتصفح فقط: لا عنوان IP، ولا تسجيل زيارات.
+function searchCount() { return Number(store.get("khmi-search-count", 0)) || 0; }
+function setSearchCount(value) { store.set("khmi-search-count", value); }
+function remainingSearches() { return Math.max(0, MAX_FREE_SEARCHES - searchCount()); }
+function updateQuotaNote() {
+  const remaining = remainingSearches();
+  $("quotaNote").textContent = remaining ? `يتبقى ${remaining} بحث قبل التسجيل في هذا المتصفح.` : "وصلت إلى حدّ البحث المحلي؛ استخدم زر «تسجيل» للمتابعة.";
+}
+function showRegistrationGate() {
+  loader.hidden = true;
+  searchButton.disabled = false;
+  resultsContainer.replaceChildren();
+  message.replaceChildren();
+  const box = make("div", { class: "register-notice" });
+  box.append(make("strong", { text: "للاستمرار في البحث، سجّل الدخول." }), make("br"), make("span", { text: "حدّ البحث محفوظ على هذا المتصفح فقط، ولا نجمع عنوان IP." }), make("br"));
+  const link = make("a", { href: REGISTER_URL, target: "_blank", rel: "noopener noreferrer", text: "فتح صفحة التسجيل" });
+  box.append(link, make("br"), make("button", { class: "more-results-btn", type: "button", text: "أكملت التسجيل — استكمل البحث" }));
+  box.querySelector("button").addEventListener("click", () => { setSearchCount(0); updateQuotaNote(); message.textContent = "تمت إعادة الحدّ محليًا. يمكنك البحث الآن."; box.remove(); });
+  message.append(box);
+}
+function renderSuggestions(query, rows) {
+  const unique = new Set();
+  const options = [];
+  for (const row of rows) {
+    const word = clean(row.coptic).trim();
+    const label = `${word} ${row.meaning || ""}`;
+    if (word && !unique.has(word)) { unique.add(word); options.push({ word, meaning: row.meaning || "" }); }
+    if (options.length >= 7) break;
   }
-  const frag = document.createDocumentFragment();
-  items.forEach((item, index) => {
-    const row = el("button", { class: `item${item.id === activeId ? " active" : ""}`, type: "button", "data-i": index },
-      el("span", { class: "w", text: copText(item.coptic) || "—" }),
-      meaningNode(item.meaning, query),
-      el("span", { class: "go", "aria-hidden": "true" }));
-    row.querySelector(".go").innerHTML = ICON.chev;
-    frag.append(el("li", {}, row));
+  if (!query || !options.length) { suggestions.hidden = true; suggestions.replaceChildren(); return; }
+  suggestions.replaceChildren(...options.map((option) => {
+    const button = make("button", { class: "suggestion", type: "button", role: "option" }, make("span", { class: "s-word cop", text: option.word }), make("span", { class: "s-meaning", text: option.meaning }));
+    button.addEventListener("click", () => { input.value = option.word; suggestions.hidden = true; void performSearch(option.word); });
+    return make("li", {}, button);
+  }));
+  suggestions.hidden = false;
+}
+let suggestSeq = 0;
+async function updateSuggestions(query) {
+  const current = ++suggestSeq;
+  const q = query.trim();
+  if (!q) { suggestions.hidden = true; suggestions.replaceChildren(); return; }
+  try { const result = await search(q); if (current === suggestSeq && input.value.trim() === q) renderSuggestions(q, result.results); }
+  catch { if (current === suggestSeq) { suggestions.hidden = true; } }
+}
+function renderMeaning(value, query) {
+  const wrap = make("span", { class: "meaning" });
+  const parts = matchParts(value || "", query);
+  parts.forEach((part, index) => { if (index) wrap.append("، "); wrap.append(part.matched ? make("mark", { text: part.text }) : document.createTextNode(part.text)); });
+  if (!parts.length) wrap.textContent = value || "—";
+  return wrap;
+}
+function resolveAudio(record) {
+  const matches = Array.isArray(record.referenceMatches) ? record.referenceMatches : [];
+  const first = matches.find((item) => item.audioUrl);
+  if (first) return { url: first.audioUrl, name: first.audioFilename || "coptic-pronunciation.ogg" };
+  if (record.aid != null && humanAudioIds.has(Number(record.aid))) return { url: `${HUMAN_AUDIO}/${record.aid}.ogg`, name: `${record.aid}.ogg` };
+  if (record.aid != null) return { url: `${AUDIO_BASE}/${record.aid}.ogg`, name: `${record.aid}.ogg` };
+  return null;
+}
+function formatTime(time) {
+  if (!Number.isFinite(time)) return "00:00";
+  const m = Math.floor(time / 60), s = Math.floor(time % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+function buildAudioPlayer(record, query) {
+  const source = resolveAudio(record);
+  const player = make("div", { class: "audio-player-container" });
+  const audio = new Audio(); audio.preload = "none";
+  if (source) audio.src = source.url;
+  const play = make("button", { class: "audio-control", type: "button", title: "تشغيل/إيقاف النطق", "aria-label": "تشغيل النطق", text: "▶" });
+  const mute = make("button", { class: "audio-control", type: "button", title: "كتم الصوت", "aria-label": "كتم الصوت", text: "🔊" });
+  const volume = make("input", { class: "audio-volume", type: "range", min: "0", max: "1", step: "0.01", value: "1", "aria-label": "مستوى الصوت" });
+  const progress = make("div", { class: "audio-progress", role: "slider", tabindex: "0", "aria-label": "موضع التشغيل", "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": "0" });
+  const progressFill = make("span"); progress.append(progressFill);
+  const elapsed = make("span", { class: "audio-time", text: "00:00" });
+  const duration = make("span", { class: "audio-time", text: "00:00" });
+  const download = make("button", { class: "download-button", type: "button", title: "تنزيل الصوت", "aria-label": "تنزيل الصوت", text: "↓" });
+  play.addEventListener("click", async () => {
+    playSfx("clickSound");
+    if (audio.src) {
+      if (audio.paused) {
+        try { await audio.play(); play.textContent = "Ⅱ"; }
+        catch { toast("تعذّر تشغيل الملف الصوتي؛ جرّب النطق الآلي."); speakFallback(record); }
+      } else { audio.pause(); play.textContent = "▶"; }
+    } else { speakFallback(record); play.textContent = "Ⅱ"; }
   });
-  listEl.replaceChildren(frag);
-  const shown = items.length;
-  setStatus(data.total > shown ? `أفضل ${shown} نتيجة` : `${data.total} ${data.total === 1 ? "نتيجة" : "نتائج"}`);
-  // تحميل تفاصيل أول نتيجة مسبقًا ليفتح فورًا عند الضغط
-  detail(items[0].id).catch(() => {});
+  audio.addEventListener("ended", () => { play.textContent = "▶"; progressFill.style.width = "0%"; elapsed.textContent = "00:00"; });
+  audio.addEventListener("loadedmetadata", () => { duration.textContent = formatTime(audio.duration); });
+  audio.addEventListener("timeupdate", () => { elapsed.textContent = formatTime(audio.currentTime); const pct = audio.duration ? audio.currentTime / audio.duration * 100 : 0; progressFill.style.width = `${pct}%`; progress.setAttribute("aria-valuenow", String(Math.round(pct))); });
+  audio.addEventListener("pause", () => { if (!audio.ended) play.textContent = "▶"; });
+  mute.addEventListener("click", () => { audio.muted = !audio.muted; mute.textContent = audio.muted ? "🔇" : "🔊"; });
+  volume.addEventListener("input", () => { audio.volume = Number(volume.value); if (audio.volume) audio.muted = false; mute.textContent = audio.muted ? "🔇" : "🔊"; });
+  const seek = (event) => { if (!audio.src || !Number.isFinite(audio.duration)) return; const rect = progress.getBoundingClientRect(); const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)); audio.currentTime = ratio * audio.duration; };
+  progress.addEventListener("click", seek);
+  progress.addEventListener("keydown", (event) => { if (["ArrowLeft","ArrowRight"].includes(event.key) && audio.src && Number.isFinite(audio.duration)) { audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + (event.key === "ArrowRight" ? 5 : -5))); } });
+  download.addEventListener("click", () => {
+    if (!source) { toast("لا يتوفر ملف صوت للتنزيل لهذا المدخل."); return; }
+    const anchor = make("a", { href: source.url, download: `${clean(record.coptic).replace(/\s+/g,"_")}-${source.name}`, target: "_blank", rel: "noopener noreferrer" });
+    document.body.append(anchor); anchor.click(); anchor.remove(); playSfx("copySound");
+  });
+  if (!source) player.dataset.fallback = "speech";
+  player.append(play, mute, volume, progress, elapsed, duration, download);
+  player._audio = audio;
+  return player;
 }
-
-async function runSearch(raw, { updateUrl = true } = {}) {
-  const query = String(raw ?? "").trim();
-  clearBtn.hidden = !input.value;
-  if (!query) {
-    seq++;
-    lastQuery = "";
-    document.body.classList.remove("has-q");
-    listEl.replaceChildren();
-    setStatus("");
-    renderChips();
-    if (updateUrl) history.replaceState(history.state, "", location.pathname);
-    return;
+function speakFallback(record) {
+  const text = spokenText(record);
+  if (!text || !("speechSynthesis" in window)) { toast("لا يتوفر نطق لهذا المدخل."); return; }
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(text); utterance.lang = "en-US"; utterance.rate = 0.62;
+  utterance.addEventListener("end", () => { const button = document.querySelector(".audio-control"); if (button) button.textContent = "▶"; });
+  window.speechSynthesis.speak(utterance);
+}
+function safeFilename(text) { return String(text || "coptic-dictionary").replace(/[\\/:*?"<>|]/g, "-").slice(0, 70); }
+async function shareCard(card, record, query) {
+  if (typeof window.html2canvas !== "function") { toast("تعذّر تحميل أداة إنشاء الصورة."); return; }
+  playSfx("clickSound");
+  const stage = $("shareStage");
+  const refs = Array.isArray(record.referenceMatches) ? record.referenceMatches : [];
+  const originalMeaning = refs.find((item) => item.meaning)?.meaning || record.meanings.join("، ");
+  const info = make("div", { class: "share-information" });
+  for (const [label, value] of [["الكلمة", query], ["القبطية", clean(record.coptic)], ["المعنى", originalMeaning], ["النوع", record.kind], ["الأصل", record.origin]]) {
+    if (!value) continue;
+    const line = make("p"); line.append(make("strong", { text: `${label}: ` }), document.createTextNode(value)); info.append(line);
   }
-  lastQuery = query;
-  document.body.classList.add("has-q");
-  const mine = ++seq;
-  const slow = setTimeout(() => {
-    if (mine !== seq || listEl.children.length) return;
-    listEl.replaceChildren(...Array.from({ length: 5 }, () => el("li", {}, el("div", { class: "sk" }))));
-  }, 140);
+  const avatars = make("div", { class: "share-avatars" });
+  const first = make("div", { class: "share-mark", text: "ⲭ" }); avatars.append(first);
+  const avatar = make("img", { src: "assets/share-abram.png", alt: "" });
+  const flag = make("img", { src: "assets/share-egypt.svg", alt: "" });
+  avatars.append(avatar, flag);
+  const date = make("div", { class: "share-date", text: `${$("date-display").textContent.replace(/\s+/g, " · ")} · ⲭⲏⲙⲓ` });
+  const photo = make("img", { class: "share-photo", src: "assets/share-photo.jpg", alt: "" });
+  const exportNode = make("div", { class: "share-export" }, avatars, make("h2", { class: "share-title", text: "القاموس القبطي · ⲭⲏⲙⲓ" }), info, date, photo);
+  stage.replaceChildren(exportNode);
+  try {
+    await Promise.all([...exportNode.querySelectorAll("img")].map((img) => img.decode().catch(() => {})));
+    const canvas = await window.html2canvas(exportNode, { scale: 2, backgroundColor: "#15130e", useCORS: true, logging: false });
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+    if (!blob) throw new Error("image export failed");
+    const filename = `${safeFilename(query)}-${safeFilename(record.coptic)}.png`;
+    if (navigator.share && navigator.canShare?.({ files: [new File([blob], filename, { type: "image/png" })] })) {
+      await navigator.share({ title: "ⲭⲏⲙⲓ — القاموس القبطي", files: [new File([blob], filename, { type: "image/png" })] });
+    } else {
+      const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 3000);
+    }
+  } catch (error) { console.error(error); toast("تعذّر إنشاء بطاقة المشاركة؛ حاول مرة أخرى."); }
+  finally { stage.replaceChildren(); }
+}
+function cardLine(label, value, className = "") {
+  const line = make("div", { class: "result-line" });
+  line.append(make("strong", { text: `${label}:` }), make("span", { class: className, text: value || "—" }));
+  return line;
+}
+async function createResultCard(item, query, index) {
+  const record = await detail(item.id);
+  await humanAudioReady;
+  const card = make("article", { class: "result-card" });
+  const share = make("button", { class: "share-button", type: "button", title: "مشاركة بطاقة صورة", "aria-label": "مشاركة بطاقة صورة", text: "↗" });
+  share.addEventListener("click", () => void shareCard(card, record, query)); card.append(share);
+  const info = make("div", { class: "info-section" });
+  info.append(cardLine("الكلمة", query), cardLine("القبطية", clean(record.coptic), "coptic-word cop"));
+  const meaning = make("div", { class: "result-line" });
+  meaning.append(make("strong", { text: "المعنى:" }));
+  const meaningContent = make("span"); meaningContent.append(renderMeaning(record.meaning || item.meaning, query));
+  if (!/[\u0600-\u06ff]/u.test(record.meaning || item.meaning || "")) {
+    const copy = make("button", { class: "copy-button", type: "button", title: "نسخ المعنى", "aria-label": "نسخ المعنى", text: "▢" });
+    copy.addEventListener("click", async () => { try { await navigator.clipboard.writeText(record.meaning || item.meaning); playSfx("copySound"); toast("تم نسخ النص"); } catch { toast("تعذّر النسخ"); } });
+    meaningContent.append(copy);
+  }
+  meaning.append(meaningContent); info.append(meaning);
+  const reference = Array.isArray(record.referenceMatches) ? record.referenceMatches[0] : null;
+  info.append(cardLine("النوع", reference?.kind || record.kind), cardLine("الأصل", reference?.origin || record.origin));
+  if (record.translation_en || record.translation_fr || record.translation_de) {
+    const trans = make("div", { class: "result-line type-origin" });
+    trans.append(make("strong", { text: "ترجمات:" }));
+    const values = [record.translation_en && `EN: ${record.translation_en}`, record.translation_fr && `FR: ${record.translation_fr}`, record.translation_de && `DE: ${record.translation_de}`].filter(Boolean);
+    trans.append(make("span", { text: values.join(" · ") })); info.append(trans);
+  }
+  info.append(buildAudioPlayer(record, query)); card.append(info);
+  return card;
+}
+let resultRows = [], currentIndex = 0, currentQuery = "", searchSequence = 0;
+async function displayCurrentResult() {
+  const seq = searchSequence;
+  const item = resultRows[currentIndex];
+  if (!item) return;
+  try {
+    const card = await createResultCard(item, currentQuery, currentIndex);
+    if (seq !== searchSequence) return;
+    resultsContainer.replaceChildren(card);
+    if (resultRows.length > currentIndex + 1) {
+      const more = make("button", { class: "more-results-btn", type: "button", text: "اضغط لمعرفة المزيد من المعاني　⌄" });
+      more.addEventListener("click", () => { currentIndex++; void displayCurrentResult(); });
+      resultsContainer.append(more);
+    }
+  } catch (error) { console.error(error); message.textContent = "تعذّر تحميل تفاصيل المدخل."; }
+}
+async function performSearch(raw) {
+  const query = String(raw ?? "").trim();
+  if (!query) { ++searchSequence; loader.hidden = true; searchButton.disabled = false; message.textContent = "الرجاء إدخال كلمة للبحث!"; resultsContainer.replaceChildren(); input.focus(); return; }
+  suggestions.hidden = true;
+  const seq = ++searchSequence;
+  if (searchCount() >= MAX_FREE_SEARCHES) { showRegistrationGate(); updateQuotaNote(); return; }
+  setSearchCount(searchCount() + 1); updateQuotaNote();
+  currentQuery = query; currentIndex = 0; resultRows = [];
+  message.textContent = ""; resultsContainer.replaceChildren(); loader.hidden = false; searchButton.disabled = true; playSfx("clickSound");
   try {
     const data = await search(query);
-    clearTimeout(slow);
-    if (mine !== seq) return;
-    renderResults(query, data);
+    if (seq !== searchSequence) return;
+    resultRows = data.results;
+    if (!resultRows.length) { message.textContent = "الكلمة غير موجودة حاليًا؛ ستتم الإضافة قريبًا."; message.classList.add("error"); playSfx("errorSound"); return; }
+    message.textContent = `${data.total.toLocaleString("ar-EG")} نتيجة`;
+    message.classList.remove("error");
+    playSfx("successSound");
+    await displayCurrentResult();
+    const params = new URLSearchParams(location.search); params.set("q", query); params.delete("w"); history.replaceState({}, "", `${location.pathname}?${params}`);
   } catch (error) {
-    clearTimeout(slow);
-    if (mine !== seq) return;
-    console.error(error);
-    showMessage("تعذّر البحث", "تحقق من اتصالك بالإنترنت ثم حاول مرة أخرى.");
-    setStatus("");
-  }
-  if (updateUrl && mine === seq) history.replaceState(history.state, "", `${location.pathname}?q=${encodeURIComponent(query)}`);
+    if (seq !== searchSequence) return;
+    console.error(error); message.textContent = "حدث خطأ في البحث؛ تحقق من الاتصال وحاول مرة أخرى."; message.classList.add("error"); playSfx("errorSound");
+  } finally { loader.hidden = true; searchButton.disabled = false; }
 }
 
-// ---- بطاقة التفاصيل ----
-let humanIds = null;
-async function loadHumanIds() {
-  if (humanIds) return humanIds;
-  try {
-    const response = await fetch(`${HUMAN_AUDIO}/manifest.json`);
-    humanIds = new Set(response.ok ? await response.json() : []);
-  } catch { humanIds = new Set(); }
-  return humanIds;
+function buildKeyboard() {
+  const rows = KEYS.map((characters) => make("div", { class: "key-row" }, ...characters.map((character) => make("button", { class: "coptic-key cop", type: "button", "data-char": character, text: character }))));
+  const special = make("div", { class: "key-row" },
+    make("button", { class: "coptic-key special", type: "button", "data-action": "backspace", text: "⌫ حذف" }),
+    make("button", { class: "coptic-key special", type: "button", "data-char": "̀", text: "̀" }),
+    make("button", { class: "coptic-key special", type: "button", "data-action": "clear", text: "مسح الكل" }),
+    make("button", { class: "coptic-key special", type: "button", "data-action": "close", text: "إغلاق" }));
+  keyboard.replaceChildren(...rows, special);
 }
-
-let currentAudio = null;
-let resetCurrent = null;
-function stopAudio() {
-  if (currentAudio) { currentAudio.pause(); currentAudio = null; }
-  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
-  if (resetCurrent) { const reset = resetCurrent; resetCurrent = null; reset(); }
-}
-function tryPlay(url, onEnd) {
-  return new Promise((resolve, reject) => {
-    const audio = new Audio();
-    let started = false;
-    audio.addEventListener("error", () => reject(new Error("audio")), { once: true });
-    audio.addEventListener("ended", onEnd, { once: true });
-    audio.addEventListener("playing", () => { started = true; resolve(audio); }, { once: true });
-    audio.src = url;
-    audio.play().catch((error) => { if (!started) reject(error); });
-  });
-}
-
-function playButton(record) {
-  const button = el("button", { class: "play", type: "button", "aria-label": "استمع إلى النطق", title: "استمع إلى النطق", "data-s": "idle" });
-  const set = (state) => {
-    button.dataset.s = state;
-    button.innerHTML = state === "playing" ? ICON.stop : ICON.play;
-    button.setAttribute("aria-label", state === "playing" ? "إيقاف النطق" : "استمع إلى النطق");
-  };
-  set("idle");
-  const reset = () => set("idle");
-  button.addEventListener("click", async () => {
-    if (button.dataset.s === "playing" || button.dataset.s === "loading") { stopAudio(); return; }
-    stopAudio();
-    resetCurrent = reset;
-    set("loading");
-    const sources = [];
-    if (record.aid != null) {
-      if ((await loadHumanIds()).has(record.aid)) sources.push(`${HUMAN_AUDIO}/${record.aid}.ogg`);
-      sources.push(`${AUDIO_BASE}/${record.aid}.ogg`);
-    }
-    for (const url of sources) {
-      try {
-        const audio = await tryPlay(url, () => { currentAudio = null; resetCurrent = null; reset(); });
-        if (resetCurrent !== reset) { audio.pause(); return; }
-        currentAudio = audio;
-        set("playing");
-        return;
-      } catch { /* جرّب المصدر التالي */ }
-    }
-    const text = spokenText(record);
-    if (text && "speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "en-US"; utterance.rate = 0.5;
-      const done = () => { resetCurrent = null; reset(); };
-      utterance.addEventListener("end", done); utterance.addEventListener("error", done);
-      window.speechSynthesis.speak(utterance);
-      set("playing");
-      return;
-    }
-    resetCurrent = null;
-    button.dataset.s = "none";
-    setTimeout(reset, 1800);
-  });
-  return button;
-}
-
-function section(title, ...kids) { return el("section", { class: "sec" }, el("h3", { text: title }), ...kids); }
-
-function renderDetail(record) {
-  const tags = el("div", { class: "tags" });
-  if (record.kind) tags.append(el("span", { class: "tag", text: record.kind }));
-  if (record.origin) tags.append(el("span", { class: "tag o", text: `الأصل: ${record.origin}` }));
-
-  const ipa = [record.pronunciation, record.phonetic].filter(Boolean).join("  ·  ");
-  const head = el("div", { class: "hd" },
-    el("div", {}, el("h2", { class: "word", text: copText(record.coptic) }), ipa ? el("p", { class: "ipa", text: ipa }) : null),
-    playButton(record));
-
-  const body = [tags, head];
-  if (record.meanings.length) body.push(section("المعنى", el("ol", { class: "meanings" }, ...record.meanings.map((m) => el("li", { text: m })))));
-  const rows = [["EN", record.translation_en || record.english], ["FR", record.translation_fr], ["DE", record.translation_de]].filter(([, v]) => v);
-  if (rows.length) body.push(section("ترجمات", el("dl", { class: "tr" }, ...rows.flatMap(([k, v]) => [el("dt", { text: k }), el("dd", { text: v })]))));
-  if (record.greek && record.origin === "يوناني") body.push(section("الأصل اليوناني", el("p", { class: "ipa", style: "font-size:20px;color:var(--ink)", text: record.greek })));
-
-  const copy = el("button", { class: "btn", type: "button" }, ...withIcon(ICON.copy, "نسخ الكلمة"));
-  copy.addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(record.coptic.replaceAll("`", "")); toast("تم نسخ الكلمة"); } catch { toast("تعذّر النسخ"); }
-  });
-  const share = el("button", { class: "btn", type: "button" }, ...withIcon(ICON.share, "مشاركة"));
-  share.addEventListener("click", async () => {
-    const url = `${location.origin}${location.pathname}?w=${record.row}`;
-    const text = `${copText(record.coptic)} — ${record.meanings.slice(0, 2).join("، ")}`;
-    try {
-      if (navigator.share) await navigator.share({ title: "ⲭⲏⲙⲓ — القاموس القبطي", text, url });
-      else { await navigator.clipboard.writeText(url); toast("تم نسخ الرابط"); }
-    } catch { /* ألغى المستخدم المشاركة */ }
-  });
-  body.push(el("div", { class: "acts" }, copy, share), el("p", { class: "fine", text: `مدخل رقم ${record.row + 1}` }));
-  panelBody.replaceChildren(...body);
-  panelBody.scrollTop = 0;
-}
-
-function showPanel() {
-  panel.setAttribute("aria-hidden", "false");
-  if (!wide.matches) { panel.classList.add("open"); backdrop.hidden = false; document.body.style.overflow = "hidden"; }
-}
-function hidePanel() {
-  stopAudio();
-  panel.classList.remove("open");
-  panel.setAttribute("aria-hidden", "true");
-  backdrop.hidden = true;
-  document.body.style.overflow = "";
-  activeId = null;
-  listEl.querySelectorAll(".item.active").forEach((n) => n.classList.remove("active"));
-}
-function closePanel() {
-  if (history.state?.w != null && !wide.matches) history.back();
-  else hidePanel();
-}
-
-async function openEntry(id, { push = true } = {}) {
-  let record;
-  try { record = await detail(id); } catch { toast("تعذّر فتح المدخل، حاول مرة أخرى"); return; }
-  if (!record) { toast("لم يُعثر على هذا المدخل"); return; }
-  stopAudio();
-  activeId = record.row;
-  renderDetail(record);
-  showPanel();
-  listEl.querySelectorAll(".item.active").forEach((n) => n.classList.remove("active"));
-  const index = items.findIndex((item) => item.id === record.row);
-  if (index >= 0) listEl.children[index]?.firstChild?.classList.add("active");
-  if (push) {
-    const url = `${location.pathname}?${lastQuery ? `q=${encodeURIComponent(lastQuery)}&` : ""}w=${record.row}`;
-    if (wide.matches || history.state?.w != null) history.replaceState({ w: record.row }, "", url);
-    else history.pushState({ w: record.row }, "", url);
-    if (lastQuery) rememberQuery(lastQuery);
-  }
-  // رابط مباشر بدون بحث: املأ القائمة بالكلمات القريبة
-  if (!lastQuery) {
-    const seed = record.coptic.split(/[\s,()]+/u)[0].replaceAll("`", "");
-    if (seed) { input.value = seed; void runSearch(seed, { updateUrl: false }); }
-  }
-}
-
-// ---- الاقتراحات والسجل ----
-function rememberQuery(query) {
-  const list = [query, ...store.get("recent", []).filter((q) => q !== query)].slice(0, 6);
-  store.set("recent", list);
-}
-function renderChips() {
-  const recent = store.get("recent", []);
-  const make = (q) => el("button", { class: `chip${hasCoptic(q) ? " cop" : ""}`, type: "button", "data-q": q, text: q });
-  const nodes = [];
-  if (recent.length) nodes.push(el("span", { class: "chip-label", text: "آخر بحث:" }), ...recent.map(make));
-  nodes.push(el("span", { class: "chip-label", text: "جرّب:" }), ...EXAMPLES.map(make));
-  chipsEl.replaceChildren(...nodes);
-}
-
-// ---- لوحة الحروف القبطية ----
-function buildKeypad() {
-  keypad.replaceChildren(...KEYS.map((k) => el("button", { type: "button", "data-k": k, text: k, "aria-label": `الحرف ${k}` })),
-    el("button", { type: "button", class: "back", "data-k": "⌫", "aria-label": "حذف", text: "⌫" }));
-}
-keypad.addEventListener("click", (event) => {
-  const key = event.target.closest("[data-k]")?.dataset.k;
-  if (!key) return;
-  const start = input.selectionStart ?? input.value.length;
-  const end = input.selectionEnd ?? start;
-  if (key === "⌫") {
-    if (start !== end) input.setRangeText("", start, end, "end");
-    else if (start > 0) input.setRangeText("", start - 1, start, "end");
-  } else input.setRangeText(key, start, end, "end");
-  input.dispatchEvent(new Event("input", { bubbles: true }));
+$("keyboardTrigger").addEventListener("click", () => {
+  keyboard.hidden = !keyboard.hidden;
+  $("keyboardTrigger").setAttribute("aria-expanded", String(!keyboard.hidden));
+  if (!keyboard.hidden && !keyboard.children.length) buildKeyboard();
+  input.inputMode = keyboard.hidden ? "search" : "none";
 });
-kbBtn.addEventListener("click", () => {
-  const open = keypad.hidden;
-  keypad.hidden = !open;
-  kbBtn.setAttribute("aria-expanded", String(open));
-  input.inputMode = open ? "none" : "search"; // لا تُظهر لوحة الجهاز مع لوحة القبطية
-  if (open) { if (!keypad.children.length) buildKeypad(); } else input.focus();
+keyboard.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-char],[data-action]"); if (!button) return;
+  const action = button.dataset.action;
+  const start = input.selectionStart ?? input.value.length, end = input.selectionEnd ?? start;
+  if (action === "backspace") { if (start !== end) input.setRangeText("", start, end, "end"); else if (start > 0) input.setRangeText("", start - 1, start, "end"); }
+  else if (action === "clear") input.value = "";
+  else if (action === "close") { keyboard.hidden = true; $("keyboardTrigger").setAttribute("aria-expanded", "false"); input.inputMode = "search"; }
+  else input.setRangeText(button.dataset.char, start, end, "end");
+  input.dispatchEvent(new Event("input", { bubbles: true })); input.focus();
 });
 
-// ---- الأحداث ----
-input.addEventListener("input", () => void runSearch(input.value));
-form.addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (selected >= 0 && items[selected]) void openEntry(items[selected].id);
-  else if (items.length === 1 || (items.length && input.value.trim())) void openEntry(items[0].id);
-  input.blur();
+input.addEventListener("input", () => { clearButton.hidden = !input.value; void updateSuggestions(input.value); });
+form.addEventListener("submit", (event) => { event.preventDefault(); void performSearch(input.value); });
+clearButton.addEventListener("click", () => { ++searchSequence; loader.hidden = true; searchButton.disabled = false; input.value = ""; clearButton.hidden = true; suggestions.hidden = true; resultsContainer.replaceChildren(); message.textContent = ""; input.focus(); });
+$("registerButton").addEventListener("click", () => {
+  window.open(REGISTER_URL, "_blank", "noopener,noreferrer");
+  toast("فُتحت صفحة التسجيل. بعد إكمالها، استكمل البحث من رسالة الحدّ المحلي.");
 });
-clearBtn.addEventListener("click", () => { input.value = ""; hidePanel(); void runSearch(""); input.focus(); });
-chipsEl.addEventListener("click", (event) => {
-  const q = event.target.closest("[data-q]")?.dataset.q;
-  if (q) { input.value = q; void runSearch(q); }
-});
-listEl.addEventListener("click", (event) => {
-  const row = event.target.closest(".item");
-  if (!row) return;
-  selected = Number(row.dataset.i);
-  void openEntry(items[selected].id);
-});
-$("closePanel").addEventListener("click", closePanel);
-backdrop.addEventListener("click", closePanel);
-window.addEventListener("popstate", (event) => {
-  if (event.state?.w != null) void openEntry(event.state.w, { push: false });
-  else hidePanel();
-});
-function moveSelection(delta) {
-  if (!items.length) return;
-  selected = Math.max(0, Math.min(items.length - 1, selected + delta));
-  listEl.querySelectorAll(".item.sel").forEach((n) => n.classList.remove("sel"));
-  const row = listEl.children[selected]?.firstChild;
-  row?.classList.add("sel");
-  row?.scrollIntoView({ block: "nearest" });
-}
+
+document.addEventListener("click", (event) => { if (!event.target.closest(".search-area")) suggestions.hidden = true; });
 document.addEventListener("keydown", (event) => {
-  if (event.key === "/" && document.activeElement !== input && !event.ctrlKey && !event.metaKey) { event.preventDefault(); input.focus(); return; }
-  if (event.key === "Escape") {
-    if (panel.classList.contains("open")) closePanel();
-    else if (input.value) { input.value = ""; void runSearch(""); }
-  }
-  if (document.activeElement === input) {
-    if (event.key === "ArrowDown") { event.preventDefault(); moveSelection(1); }
-    if (event.key === "ArrowUp") { event.preventDefault(); moveSelection(-1); }
-  }
-});
-$("themeBtn").addEventListener("click", () => {
-  const dark = document.documentElement.dataset.theme === "dark" || (!document.documentElement.dataset.theme && matchMedia("(prefers-color-scheme: dark)").matches);
-  const next = dark ? "light" : "dark";
-  document.documentElement.dataset.theme = next;
-  try { localStorage.setItem("theme", next); } catch { /* التصفح الخاص */ }
+  if (event.key === "Escape") { suggestions.hidden = true; if (!keyboard.hidden) keyboard.hidden = true; }
+  if (event.key === "/" && document.activeElement !== input && !event.ctrlKey && !event.metaKey) { event.preventDefault(); input.focus(); }
 });
 
-// ---- البدء ----
-renderChips();
-(async () => {
-  try {
-    const manifest = await init();
-    $("count").textContent = count().toLocaleString("en-US");
-    if ("serviceWorker" in navigator) navigator.serviceWorker.register(`sw.js?v=${manifest.v}`).catch(() => {});
-  } catch (error) {
-    console.error(error);
-    showMessage("تعذّر تحميل القاموس", "تحقق من اتصالك ثم أعد تحميل الصفحة.");
-    return;
+// الإشعارات: قراءة العمود B فقط من التبويب المرجعي، مع علامة مشاهدة خاصة بهذا المتصفح.
+function parseCSV(text) {
+  const rows = []; let row = [], value = "", quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (quoted && ch === '"' && text[i + 1] === '"') { value += '"'; i++; }
+    else if (ch === '"') quoted = !quoted;
+    else if (ch === "," && !quoted) { row.push(value); value = ""; }
+    else if ((ch === "\n" || ch === "\r") && !quoted) { if (ch === "\r" && text[i + 1] === "\n") i++; row.push(value); rows.push(row); row = []; value = ""; }
+    else value += ch;
   }
-  const params = new URLSearchParams(location.search);
-  const q = params.get("q");
-  const w = params.get("w");
-  if (q) { input.value = q; await runSearch(q, { updateUrl: false }); }
-  if (w) await openEntry(Number(w), { push: false });
-  if (!q && !w) input.focus({ preventScroll: true });
+  if (value || row.length) { row.push(value); rows.push(row); }
+  return rows;
+}
+let notifications = [], newNotificationCount = 0;
+async function loadNotifications() {
+  const list = $("notificationsList");
+  try {
+    const url = `${NOTIFICATIONS_URL}&t=${Date.now()}`;
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const rows = parseCSV(await response.text());
+    // Do not retain or render any other column: the query itself is constrained to B2:B.
+    notifications = rows.map((row) => row[0]?.trim()).filter(Boolean).slice(-10).reverse();
+    const previousTotal = Number(store.get("khmi-notification-total", 0)) || 0;
+    newNotificationCount = Math.max(0, notifications.length - Number(store.get("khmi-notification-seen", notifications.length)));
+    if (notifications.length > previousTotal && previousTotal > 0) {
+      newNotificationCount = Math.min(notifications.length, notifications.length - previousTotal);
+      const bar = $("notificationBar"); bar.hidden = false; setTimeout(() => { bar.hidden = true; }, 3000);
+    }
+    store.set("khmi-notification-total", notifications.length);
+    if (!$('notificationsWindow').hidden) { store.set("khmi-notification-seen", notifications.length); newNotificationCount = 0; }
+    renderNotifications();
+  } catch (error) {
+    console.warn("تعذر تحميل الإشعارات", error);
+    if (!notifications.length) $("notificationsList").replaceChildren(make("p", { class: "notification-empty", text: "تعذّر تحميل الإشعارات الآن." }));
+  }
+}
+function renderNotifications() {
+  const list = $("notificationsList");
+  if (!notifications.length) { list.replaceChildren(make("p", { class: "notification-empty", text: "لا توجد إشعارات جديدة" })); }
+  else list.replaceChildren(...notifications.map((text, index) => make("div", { class: `notification-item${index < newNotificationCount ? " new" : ""}`, text })));
+  const badge = $("notificationBadge"); badge.hidden = newNotificationCount <= 0; badge.textContent = newNotificationCount > 9 ? "9+" : String(newNotificationCount);
+}
+function toggleNotifications(open) {
+  const windowEl = $("notificationsWindow"); const show = open ?? windowEl.hidden;
+  windowEl.hidden = !show; $("notificationsButton").setAttribute("aria-expanded", String(show));
+  if (show) { void loadNotifications(); store.set("khmi-notification-seen", notifications.length); newNotificationCount = 0; renderNotifications(); }
+}
+$("notificationsButton").addEventListener("click", () => toggleNotifications());
+$("closeNotifications").addEventListener("click", () => toggleNotifications(false));
+
+// ---- بدء التطبيق ----
+(async () => {
+  updateDate(); setInterval(updateDate, 60_000); updateQuotaNote();
+  try {
+    const manifest = await init(); $("count").textContent = count().toLocaleString("en-US");
+    if ("serviceWorker" in navigator && window.__DEV_LIVE__) navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister())).catch(() => {});
+    else if ("serviceWorker" in navigator) navigator.serviceWorker.register(`sw.js?v=${manifest.v}`).catch(() => {});
+  } catch (error) { console.error(error); message.textContent = "تعذّر تحميل القاموس؛ تحقق من الاتصال ثم أعد تحميل الصفحة."; message.classList.add("error"); return; }
+  await loadNotifications(); setInterval(loadNotifications, 60_000);
+  const params = new URLSearchParams(location.search); const query = params.get("q");
+  if (query) { input.value = query; clearButton.hidden = false; await performSearch(query); }
 })();

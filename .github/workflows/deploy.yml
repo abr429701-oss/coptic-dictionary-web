@@ -30,6 +30,12 @@ jobs:
       - name: Build dictionary.json from the Google Sheet
         run: python3 scripts/sheet_to_json.py
 
+      - name: Sync public Apps Script pronunciation files
+        run: python3 scripts/download_appscript_audio.py
+
+      - name: Enrich dictionary from the Apps Script source
+        run: python3 scripts/enrich_appscript_data.py
+
       - name: Run tests
         run: node --test
 
@@ -38,7 +44,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data
+          git add data audio-appscript
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else

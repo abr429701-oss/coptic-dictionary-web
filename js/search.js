@@ -81,7 +81,7 @@ export async function search(query) {
 }
 
 // تفاصيل مدخل واحد (مجموعة من 64 مدخلًا في ملف واحد، تُخزَّن في الذاكرة).
-const FIELDS = ["coptic", "greek", "pronunciation", "english", "phonetic", "kind", "gender", "origin", "translation_en", "translation_fr", "translation_de", "meaning", "aid"];
+const FIELDS = ["coptic", "greek", "pronunciation", "english", "phonetic", "kind", "gender", "origin", "translation_en", "translation_fr", "translation_de", "meaning", "aid", "referenceMatches"];
 export async function detail(id) {
   const block = Math.floor(Number(id) / manifest.detailSize);
   let promise = detailCache.get(block);
