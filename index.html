@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>ⲭⲏⲙⲓ — القاموس القبطي</title>
   <meta name="description" content="ابحث في القاموس القبطي البحيري بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية، واستمع إلى النطق وشارك النتيجة.">
-  <meta name="theme-color" content="#090909">
+  <meta name="theme-color" content="#0b0f14">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="apple-touch-icon" href="assets/icon-192.png">
@@ -17,28 +17,40 @@
 </head>
 <body>
   <a class="skip" href="#wordInput">انتقل إلى البحث</a>
+  <div class="bg-ornament" aria-hidden="true"></div>
   <div class="page-wrap">
-    <button id="registerButton" class="register-button" type="button" title="التسجيل لفتح البحث">
-      <span aria-hidden="true">♙</span> تسجيل
-    </button>
-
     <main class="container" id="app">
-      <p class="eyebrow">اللغة القبطية · اللهجة البحيرية</p>
-      <h1>القاموس القبطي <span class="cop">Ⲭⲏⲙⲓ</span></h1>
-      <div class="date-display" id="date-display" aria-live="off"></div>
-      <p class="intro">ابحث بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية</p>
-
-      <section class="search-area" aria-label="البحث في القاموس">
-        <form id="searchForm" role="search" autocomplete="off">
+      <header class="site-header">
+        <a class="wordmark" href="./" aria-label="القاموس القبطي ⲭⲏⲙⲓ">
+          <span class="brand-logo" aria-hidden="true"><img src="assets/favicon.png" width="48" height="48" alt=""></span>
+          <span class="brand-copy"><span class="brand-name">ⲭⲏⲙⲓ <span>القاموس القبطي</span></span><span class="brand-caption">Coptic · Bohairic Dictionary</span></span>
+        </a>
+        <div class="header-actions">
+          <button id="notificationsButton" class="notifications-button" type="button" aria-label="الإشعارات" aria-expanded="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="notificationBadge" class="notification-badge" hidden></span>
+          </button>
+          <button id="registerButton" class="register-button" type="button" title="التسجيل لفتح البحث"><span aria-hidden="true">♙</span> تسجيل</button>
+        </div>
+      </header>
+      <p class="coptic-date date-display" id="date-display" aria-live="polite"></p>
+      <section class="search-section" aria-labelledby="searchHeading">
+        <h1 id="searchHeading" class="search-heading">ابحث في القاموس</h1>
+        <p class="intro">ابحث بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية</p>
+        <div class="search-area">
+          <form id="searchForm" class="search-form" role="search" autocomplete="off">
           <label class="sr" for="wordInput">أدخل كلمة للبحث</label>
-          <input id="wordInput" type="search" dir="auto" enterkeyhint="search" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="أدخل الكلمة هنا..." aria-controls="suggestions">
-          <button id="clearButton" class="clear-button" type="button" aria-label="مسح البحث" hidden>×</button>
-          <button id="keyboardTrigger" class="keyboard-trigger cop" type="button" aria-label="لوحة المفاتيح القبطية" aria-expanded="false">ⲁ</button>
-        </form>
-        <ul id="suggestions" class="suggestions" role="listbox" hidden></ul>
-        <div id="coptic-keyboard" class="coptic-keyboard" hidden aria-label="لوحة المفاتيح القبطية"></div>
-        <button id="searchButton" class="search-button" type="submit" form="searchForm">ابحث</button>
-        <p id="quotaNote" class="quota-note" aria-live="polite"></p>
+            <div class="search-input-wrap">
+              <svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.6"/><path d="m16 16 5 5"/></svg>
+              <input id="wordInput" type="search" dir="auto" enterkeyhint="search" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب كلمة للبحث…" aria-controls="suggestions" aria-autocomplete="list">
+              <button id="clearButton" class="clear-button" type="button" aria-label="مسح البحث" hidden>×</button>
+              <button id="keyboardTrigger" class="keyboard-trigger cop" type="button" aria-label="لوحة المفاتيح القبطية" aria-expanded="false" title="لوحة المفاتيح القبطية">ⲁ</button>
+            </div>
+            <button id="searchButton" class="search-button" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.6"/><path d="m16 16 5 5"/></svg><span>ابحث</span></button>
+          </form>
+          <ul id="suggestions" class="suggestions" role="listbox" aria-label="اقتراحات البحث" hidden></ul>
+          <div id="coptic-keyboard" class="coptic-keyboard" hidden aria-label="لوحة المفاتيح القبطية"></div>
+          <p id="quotaNote" class="quota-note" aria-live="polite"></p>
+        </div>
       </section>
 
       <section class="results-area" aria-label="نتائج البحث">
@@ -48,17 +60,14 @@
       </section>
 
       <footer class="site-footer">
-        <a class="learn-link" href="https://t.me/Coptic2_bot" target="_blank" rel="noopener noreferrer">إذا أردت تعلم اللغة القبطية من الصفر اضغط هنا</a>
-        <div class="footer-meta"><span>ⲭⲏⲙⲓ · <b id="count">16,346</b> مدخل</span><span>صورة الخلفية: Kallerna / Wikimedia Commons · <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a></span><span>الخط القبطي: Naqlun · Gabriel Arshiagelos</span></div>
+        <a class="learn-link" href="https://t.me/Coptic2_bot" target="_blank" rel="noopener noreferrer">ابدأ تعلّم اللغة القبطية</a>
+        <div class="footer-meta"><span>ⲭⲏⲙⲓ · <b id="count">16,346</b> مدخل</span><span>مصدر الصورة: Kallerna / Wikimedia Commons · <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a></span><span>الخط القبطي: Naqlun · Gabriel Arshiagelos</span></div>
         <span class="author">مصمم بواسطة <a href="https://wa.me/201207829388" target="_blank" rel="noopener noreferrer">Abram</a></span>
       </footer>
     </main>
   </div>
 
   <div id="notificationBar" class="notification-bar" role="status" hidden>هناك إشعار جديد!</div>
-  <button id="notificationsButton" class="notifications-button" type="button" aria-label="الإشعارات" aria-expanded="false">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="notificationBadge" class="notification-badge" hidden></span>
-  </button>
   <section id="notificationsWindow" class="notifications-window" aria-label="الإشعارات" hidden>
     <div class="notification-header"><h2>الإشعارات الجديدة</h2><button id="closeNotifications" type="button" aria-label="إغلاق الإشعارات">×</button></div>
     <div id="notificationsList" class="notifications-list"><p class="notification-empty">جاري تحميل الإشعارات…</p></div>
