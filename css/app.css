@@ -8,3 +8,5 @@
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
 #wordInput,.cop,.brand-name,.result-line .coptic-word,.suggestion .s-word,.share-mark{font-family:'Naqlun Coptic','IBM Plex Arabic',sans-serif}
+.brand-book{width:19px;height:19px;flex:0 0 19px;fill:none;stroke:var(--teal-soft);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px}
+.brand-logo{border-radius:50%}
