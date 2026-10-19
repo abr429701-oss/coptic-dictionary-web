@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>ⲭⲏⲙⲓ — القاموس القبطي</title>
   <meta name="description" content="ابحث في القاموس القبطي البحيري بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية، واستمع إلى النطق وشارك النتيجة.">
-  <meta name="theme-color" content="#0b0f14">
+  <meta name="theme-color" content="#f4f0e7">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/site-logo-192.png">
   <link rel="apple-touch-icon" href="assets/site-logo-192.png">
@@ -34,8 +34,12 @@
       </header>
       <p class="coptic-date date-display" id="date-display" aria-live="polite"></p>
       <section class="search-section" aria-labelledby="searchHeading">
-        <h1 id="searchHeading" class="search-heading">ابحث في القاموس</h1>
-        <p class="intro">ابحث بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية</p>
+        <div class="hero-heading-row">
+          <div class="hero-heading-copy">
+            <h1 id="searchHeading" class="search-heading">من كلمةٍ إلى حكاية</h1>
+          </div>
+          <div class="hero-mark" aria-hidden="true"><span>ⲭ</span><i></i><b></b></div>
+        </div>
         <div class="search-area">
           <form id="searchForm" class="search-form" role="search" autocomplete="off">
           <label class="sr" for="wordInput">أدخل كلمة للبحث</label>
@@ -61,8 +65,7 @@
 
       <footer class="site-footer">
         <a class="learn-link" href="https://t.me/Coptic2_bot" target="_blank" rel="noopener noreferrer">ابدأ تعلّم اللغة القبطية</a>
-        <div class="footer-meta"><span>ⲭⲏⲙⲓ · <b id="count">16,346</b> مدخل</span><span>مصدر الصورة: Kallerna / Wikimedia Commons · <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 3.0</a></span><span>الخط القبطي: Naqlun · Gabriel Arshiagelos</span></div>
-        <span class="author">مصمم بواسطة <a href="https://wa.me/201207829388" target="_blank" rel="noopener noreferrer">Abram</a></span>
+        <span id="count" hidden>16,346</span>
       </footer>
     </main>
   </div>
