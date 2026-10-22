@@ -36,6 +36,7 @@ TRANSLATION_DE_COLUMN = 5
 GREEK_COLUMN = 6
 ORIGIN_COLUMN = 9
 KIND_COLUMN = 10
+AUDIO_URL_COLUMN = 11  # Column L: direct audio URL override (highest priority on the site)
 
 
 JINKIM = "\u0300"  # combining grave: the real jinkim, drawn over the letter it follows
@@ -66,6 +67,17 @@ def arabic_meaning(value: str, translations: list[str]) -> str:
         )
     parts = [part.strip() for part in re.split(r"\s*[،,]\s*", text) if part.strip()]
     return "، ".join(parts)
+
+
+def normalize_audio_url(link: str) -> str:
+    """Convert a Google Drive share link into a direct download URL; keep direct URLs as-is."""
+    link = link.strip()
+    if not link:
+        return ""
+    match = re.search(r"/d/([A-Za-z0-9_-]+)", link) or re.search(r"[?&]id=([A-Za-z0-9_-]+)", link)
+    if match:
+        return f"https://drive.google.com/uc?export=download&id={match.group(1)}"
+    return link
 
 
 def word_key(coptic: str) -> str:
@@ -150,6 +162,11 @@ def main() -> None:
     if not rows or not ("coptic" in first_header or "قبط" in first_header):
         raise SystemExit("Unexpected sheet content (is the sheet shared as 'Anyone with the link'?).")
 
+    header = [c.strip().lower() for c in rows[0]] if rows else []
+    audio_col = next(
+        (i for i, h in enumerate(header) if any(k in h for k in ("audio", "voice", "sound", "صوت", "نطق", "رابط الصوت"))),
+        AUDIO_URL_COLUMN,
+    )
     records = []
     for row in rows[1:]:
         def cell(index: int) -> str:
@@ -170,6 +187,7 @@ def main() -> None:
             "translation_fr": cell(TRANSLATION_FR_COLUMN),
             "translation_de": cell(TRANSLATION_DE_COLUMN),
             "meaning": cell(MEANING_COLUMN),
+            "audio_url": normalize_audio_url(cell(audio_col)),
         }
         if not any(record.values()):
             continue

@@ -94,7 +94,7 @@ for (const [key, entries] of groups) place(key, entries, 2);
 const details = {};
 records.forEach((r, n) => {
   const block = Math.floor(n / DETAIL_SIZE);
-  (details[block] ??= {})[n] = [r.coptic, r.greek, r.pronunciation, r.english, r.phonetic, r.kind, r.gender, r.origin, r.translation_en, r.translation_fr, r.translation_de, r.meaning, r.id ?? "", r.referenceMatches ?? []];
+  (details[block] ??= {})[n] = [r.coptic, r.greek, r.pronunciation, r.english, r.phonetic, r.kind, r.gender, r.origin, r.translation_en, r.translation_fr, r.translation_de, r.meaning, r.id ?? "", r.referenceMatches ?? [], r.audio_url ?? ""];
 });
 for (const [block, rows] of Object.entries(details)) writeFileSync(`${OUT}/d/${block}.json`, JSON.stringify(rows));
 

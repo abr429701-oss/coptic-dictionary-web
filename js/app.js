@@ -84,6 +84,7 @@ function renderMeaning(value, query) {
   return wrap;
 }
 function resolveAudio(record) {
+  if (record.audio_url) return { url: record.audio_url, name: "coptic-pronunciation.ogg" };
   const matches = Array.isArray(record.referenceMatches) ? record.referenceMatches : [];
   const first = matches.find((item) => item.audioUrl);
   if (first) return { url: first.audioUrl, name: first.audioFilename || "coptic-pronunciation.ogg" };
@@ -97,10 +98,19 @@ function formatTime(time) {
   return `${m}:${s}`;
 }
 function buildAudioPlayer(record, query) {
-  const source = resolveAudio(record);
   const player = make("div", { class: "audio-player-container" });
   const audio = new Audio(); audio.preload = "none";
-  if (source) audio.src = source.url;
+  let sourcePromise = null;
+  function ensureSource() {
+    if (!sourcePromise) {
+      sourcePromise = humanAudioReady.catch(() => {}).then(() => {
+        const src = resolveAudio(record) || null;
+        if (src) audio.src = src.url; else player.dataset.fallback = "speech";
+        return src;
+      });
+    }
+    return sourcePromise;
+  }
   const play = make("button", { class: "audio-control", type: "button", title: "تشغيل/إيقاف النطق", "aria-label": "تشغيل النطق", text: "▶" });
   const mute = make("button", { class: "audio-control", type: "button", title: "كتم الصوت", "aria-label": "كتم الصوت", text: "🔊" });
   const volume = make("input", { class: "audio-volume", type: "range", min: "0", max: "1", step: "0.01", value: "1", "aria-label": "مستوى الصوت" });
@@ -111,7 +121,8 @@ function buildAudioPlayer(record, query) {
   const download = make("button", { class: "download-button", type: "button", title: "تنزيل الصوت", "aria-label": "تنزيل الصوت", text: "↓" });
   play.addEventListener("click", async () => {
     playSfx("clickSound");
-    if (audio.src) {
+    const src = await ensureSource();
+    if (src) {
       if (audio.paused) {
         try { await audio.play(); play.textContent = "Ⅱ"; }
         catch { toast("تعذّر تشغيل الملف الصوتي؛ جرّب النطق الآلي."); speakFallback(record); }
@@ -127,12 +138,12 @@ function buildAudioPlayer(record, query) {
   const seek = (event) => { if (!audio.src || !Number.isFinite(audio.duration)) return; const rect = progress.getBoundingClientRect(); const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)); audio.currentTime = ratio * audio.duration; };
   progress.addEventListener("click", seek);
   progress.addEventListener("keydown", (event) => { if (["ArrowLeft","ArrowRight"].includes(event.key) && audio.src && Number.isFinite(audio.duration)) { audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + (event.key === "ArrowRight" ? 5 : -5))); } });
-  download.addEventListener("click", () => {
-    if (!source) { toast("لا يتوفر ملف صوت للتنزيل لهذا المدخل."); return; }
-    const anchor = make("a", { href: source.url, download: `${clean(record.coptic).replace(/\s+/g,"_")}-${source.name}`, target: "_blank", rel: "noopener noreferrer" });
+  download.addEventListener("click", async () => {
+    const src = await ensureSource();
+    if (!src) { toast("لا يتوفر ملف صوت للتنزيل لهذا المدخل."); return; }
+    const anchor = make("a", { href: src.url, download: `${clean(record.coptic).replace(/\s+/g,"_")}-${src.name}`, target: "_blank", rel: "noopener noreferrer" });
     document.body.append(anchor); anchor.click(); anchor.remove(); playSfx("copySound");
   });
-  if (!source) player.dataset.fallback = "speech";
   player.append(play, mute, volume, progress, elapsed, duration, download);
   player._audio = audio;
   return player;
@@ -187,7 +198,6 @@ function cardLine(label, value, className = "") {
 }
 async function createResultCard(item, query, index) {
   const record = await detail(item.id);
-  await humanAudioReady;
   const card = make("article", { class: "result-card" });
   const share = make("button", { class: "share-button", type: "button", title: "مشاركة بطاقة صورة", "aria-label": "مشاركة بطاقة صورة", text: "↗" });
   share.addEventListener("click", () => void shareCard(card, record, query)); card.append(share);
@@ -204,12 +214,6 @@ async function createResultCard(item, query, index) {
   meaning.append(meaningContent); info.append(meaning);
   const reference = Array.isArray(record.referenceMatches) ? record.referenceMatches[0] : null;
   info.append(cardLine("النوع", reference?.kind || record.kind), cardLine("الأصل", reference?.origin || record.origin));
-  if (record.translation_en || record.translation_fr || record.translation_de) {
-    const trans = make("div", { class: "result-line type-origin" });
-    trans.append(make("strong", { text: "ترجمات:" }));
-    const values = [record.translation_en && `EN: ${record.translation_en}`, record.translation_fr && `FR: ${record.translation_fr}`, record.translation_de && `DE: ${record.translation_de}`].filter(Boolean);
-    trans.append(make("span", { text: values.join(" · ") })); info.append(trans);
-  }
   info.append(buildAudioPlayer(record, query)); card.append(info);
   return card;
 }
@@ -244,7 +248,8 @@ async function performSearch(raw) {
     message.textContent = `${data.total.toLocaleString("ar-EG")} نتيجة`;
     message.classList.remove("error");
     playSfx("successSound");
-    await displayCurrentResult();
+    loader.hidden = true; searchButton.disabled = false;
+    void displayCurrentResult();
     const params = new URLSearchParams(location.search); params.set("q", query); params.delete("w"); history.replaceState({}, "", `${location.pathname}?${params}`);
   } catch (error) {
     if (seq !== searchSequence) return;

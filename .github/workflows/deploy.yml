@@ -1,12 +1,12 @@
 name: Deploy dictionary website
 
-# يعمل عند كل Push إلى main، وكل 30 دقيقة لمزامنة القاموس من Google Sheets، وعند الضغط على Run workflow.
+# يعمل عند كل Push إلى main، وكل 5 دقائق لمزامنة القاموس من Google Sheets، وعند الضغط على Run workflow.
 # الموقع لا يحمّل القاموس كاملًا: يُبنى منه فهرس مجزّأ إلى ملفات صغيرة تُنشر على GitHub Pages.
 on:
   push:
     branches: [main]
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 
 permissions:
