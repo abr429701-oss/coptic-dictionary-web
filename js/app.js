@@ -7,6 +7,8 @@ const HUMAN_AUDIO = "audio-human";
 let humanAudioIds = new Set();
 const humanAudioReady = fetch(`${HUMAN_AUDIO}/manifest.json`).then((response) => response.json()).then((ids) => { humanAudioIds = new Set(ids.map(Number)); }).catch(() => {});
 const SHEET_ID = "17n8MgiCIe4xVRXqM7W74zCSeqwo6pX8L-Pj2wSsl0ek";
+const APP_SHEET_ID = "1kZKjF2KDsGT0HslGSenN-pDTzx4FpX0QDPqX0ZOnriY";
+const APP_CONFIG_URL = `https://docs.google.com/spreadsheets/d/${APP_SHEET_ID}/gviz/tq?tqx=out:json&sheet=APP_CONFIG&range=B:B`;
 const NOTIFICATIONS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out%3Acsv&sheet=bot&range=B2%3AB`;
 const KEYS = [
   ["ⲁ","ⲃ","ⲅ","ⲇ","ⲉ","ⲋ"], ["ⲍ","ⲏ","ⲑ","ⲓ","ⲕ","ⲗ"], ["ⲙ","ⲛ","ⲝ","ⲟ","ⲡ","ⲣ"],
@@ -21,10 +23,10 @@ const store = {
   set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private browsing */ } }
 };
 const I18N = {
-  ar: { searchPlaceholder:"اكتب كلمة للبحث…", searchButton:"ابحث", searchHeading:"من كلمةٍ إلى حكاية", loading:"جاري البحث…", enterWord:"الرجاء إدخال كلمة للبحث!", results:"{n} نتيجة", noResult:"الكلمة غير موجودة حاليًا؛ ستتم الإضافة قريبًا.", searchError:"حدث خطأ في البحث؛ تحقق من الاتصال وحاول مرة أخرى.", detailError:"تعذّر تحميل تفاصيل المدخل.", moreResults:"اضغط لمعرفة المزيد من المعاني　⌄", backToResults:"رجوع إلى النتائج", fieldWord:"الكلمة", fieldMeaning:"المعنى", fieldKind:"النوع", fieldOrigin:"الأصل", audioUnavailable:"لا يتوفر ملف صوت للتنزيل لهذا المدخل.", audioPlayError:"تعذّر تشغيل الملف الصوتي؛ جرّب النطق الآلي.", speechUnavailable:"لا يتوفر نطق لهذا المدخل.", copied:"تم نسخ النص", copyError:"تعذّر النسخ", shareError:"تعذّر إنشاء بطاقة المشاركة؛ حاول مرة أخرى.", shareToolError:"تعذّر تحميل أداة إنشاء الصورة.", learnLink:"ابدأ تعلّم اللغة القبطية", newNotification:"هناك إشعار جديد!", notificationsTitle:"الإشعارات الجديدة", skip:"انتقل إلى البحث", brandCaption:"ⲭⲏⲙⲓ · القاموس القبطي", shareTitle:"القاموس القبطي · ⲭⲏⲙⲓ", dateLocale:"ar-EG" },
-  en: { searchPlaceholder:"Type a word to search…", searchButton:"Search", searchHeading:"From a word to a story", loading:"Searching…", enterWord:"Please enter a word to search!", results:"{n} results", noResult:"This word is not yet available; it will be added soon.", searchError:"Search error; check your connection and try again.", detailError:"Could not load entry details.", moreResults:"Tap for more meanings　⌄", backToResults:"Back to results", fieldWord:"Word", fieldMeaning:"Meaning", fieldKind:"Type", fieldOrigin:"Origin", audioUnavailable:"No audio file available for download for this entry.", audioPlayError:"Could not play the audio; try text-to-speech.", speechUnavailable:"No pronunciation available for this entry.", copied:"Text copied", copyError:"Copy failed", shareError:"Could not create share card; try again.", shareToolError:"Could not load the image tool.", learnLink:"Start learning Coptic", newNotification:"New notification!", notificationsTitle:"New notifications", skip:"Skip to search", brandCaption:"ⲭⲏⲙⲓ · Coptic Dictionary", shareTitle:"Coptic Dictionary · ⲭⲏⲙⲓ", dateLocale:"en-GB" },
-  fr: { searchPlaceholder:"Tapez un mot à rechercher…", searchButton:"Rechercher", searchHeading:"D'un mot à une histoire", loading:"Recherche…", enterWord:"Veuillez saisir un mot à rechercher !", results:"{n} résultats", noResult:"Ce mot n'est pas encore disponible ; il sera bientôt ajouté.", searchError:"Erreur de recherche ; vérifiez votre connexion et réessayez.", detailError:"Impossible de charger les détails de l'entrée.", moreResults:"Appuyez pour plus de sens　⌄", backToResults:"Retour aux résultats", fieldWord:"Mot", fieldMeaning:"Sens", fieldKind:"Type", fieldOrigin:"Origine", audioUnavailable:"Aucun fichier audio disponible pour cette entrée.", audioPlayError:"Impossible de lire l'audio ; essayez la synthèse vocale.", speechUnavailable:"Aucune prononciation disponible.", copied:"Texte copié", copyError:"Échec de la copie", shareError:"Impossible de créer la carte de partage ; réessayez.", shareToolError:"Impossible de charger l'outil d'image.", learnLink:"Commencez à apprendre le copte", newNotification:"Nouvelle notification !", notificationsTitle:"Nouvelles notifications", skip:"Aller à la recherche", brandCaption:"ⲭⲏⲙⲓ · Dictionnaire copte", shareTitle:"Dictionnaire copte · ⲭⲏⲙⲓ", dateLocale:"fr-FR" },
-  de: { searchPlaceholder:"Wort zum Suchen eingeben…", searchButton:"Suchen", searchHeading:"Von einem Wort zu einer Geschichte", loading:"Suche…", enterWord:"Bitte geben Sie ein Suchwort ein!", results:"{n} Ergebnisse", noResult:"Dieses Wort ist noch nicht verfügbar; es wird bald hinzugefügt.", searchError:"Suchfehler; Verbindung prüfen und erneut versuchen.", detailError:"Details konnten nicht geladen werden.", moreResults:"Tippen für weitere Bedeutungen　⌄", backToResults:"Zurück zu den Ergebnissen", fieldWord:"Wort", fieldMeaning:"Bedeutung", fieldKind:"Typ", fieldOrigin:"Herkunft", audioUnavailable:"Keine Audiodatei zum Download verfügbar.", audioPlayError:"Audio konnte nicht abgespielt werden; Sprachsynthese versuchen.", speechUnavailable:"Keine Aussprache verfügbar.", copied:"Text kopiert", copyError:"Kopieren fehlgeschlagen", shareError:"Share-Karte konnte nicht erstellt werden.", shareToolError:"Bildtool konnte nicht geladen werden.", learnLink:"Koptisch lernen beginnen", newNotification:"Neue Benachrichtigung!", notificationsTitle:"Neue Benachrichtigungen", skip:"Zur Suche springen", brandCaption:"ⲭⲏⲙⲓ · Koptisches Wörterbuch", shareTitle:"Koptisches Wörterbuch · ⲭⲏⲙⲓ", dateLocale:"de-DE" }
+  ar: { searchPlaceholder:"اكتب كلمة للبحث…", searchButton:"ابحث", searchHeading:"من كلمةٍ إلى حكاية", loading:"جاري البحث…", enterWord:"الرجاء إدخال كلمة للبحث!", results:"{n} نتيجة", noResult:"الكلمة غير موجودة حاليًا؛ ستتم الإضافة قريبًا.", searchError:"حدث خطأ في البحث؛ تحقق من الاتصال وحاول مرة أخرى.", detailError:"تعذّر تحميل تفاصيل المدخل.", moreResults:"اضغط لمعرفة المزيد من المعاني　⌄", backToResults:"رجوع إلى النتائج", fieldWord:"الكلمة", fieldMeaning:"المعنى", fieldKind:"النوع", fieldOrigin:"الأصل", audioUnavailable:"لا يتوفر ملف صوت للتنزيل لهذا المدخل.", audioPlayError:"تعذّر تشغيل الملف الصوتي؛ جرّب النطق الآلي.", speechUnavailable:"لا يتوفر نطق لهذا المدخل.", copied:"تم نسخ النص", copyError:"تعذّر النسخ", shareError:"تعذّر إنشاء بطاقة المشاركة؛ حاول مرة أخرى.", shareToolError:"تعذّر تحميل أداة إنشاء الصورة.", learnLink:"🤖 بوت تيليجرام — القاموس القبطي", footerDesc:"القاموس القبطي Ⲭⲏⲙⲓ هو أول قاموس قبطي ناطق على الإنترنت، وسيفيدك كثيراً على تحسين لغتك القبطية، نتمنى لك تجربة فريدة.", downloadApp:"📱 حمّل تطبيق القاموس", qrTitle:"حمّل تطبيق القاموس على الموبايل", qrHint:"امسح الباركود بالكاميرا لتحميل التطبيق", directDownload:"أو اضغط هنا للتحميل المباشر ↓", qrError:"تعذّر جلب رابط التحميل.", qrLoading:"جاري التحميل…", newNotification:"هناك إشعار جديد!", notificationsTitle:"الإشعارات الجديدة", skip:"انتقل إلى البحث", brandCaption:"ⲭⲏⲙⲓ · القاموس القبطي", shareTitle:"القاموس القبطي · ⲭⲏⲙⲓ", dateLocale:"ar-EG" },
+  en: { searchPlaceholder:"Type a word to search…", searchButton:"Search", searchHeading:"From a word to a story", loading:"Searching…", enterWord:"Please enter a word to search!", results:"{n} results", noResult:"This word is not yet available; it will be added soon.", searchError:"Search error; check your connection and try again.", detailError:"Could not load entry details.", moreResults:"Tap for more meanings　⌄", backToResults:"Back to results", fieldWord:"Word", fieldMeaning:"Meaning", fieldKind:"Type", fieldOrigin:"Origin", audioUnavailable:"No audio file available for download for this entry.", audioPlayError:"Could not play the audio; try text-to-speech.", speechUnavailable:"No pronunciation available for this entry.", copied:"Text copied", copyError:"Copy failed", shareError:"Could not create share card; try again.", shareToolError:"Could not load the image tool.", learnLink:"🤖 Telegram Bot — Coptic Dictionary", footerDesc:"Coptic Dictionary Ⲭⲏⲙⲓ is the first spoken Coptic dictionary on the internet. It will help you improve your Coptic. We wish you a unique experience.", downloadApp:"📱 Download the Dictionary App", qrTitle:"Download the Dictionary App", qrHint:"Scan the QR code with your camera to download the app", directDownload:"Or click here for direct download ↓", qrError:"Could not fetch the download link.", qrLoading:"Loading…", newNotification:"New notification!", notificationsTitle:"New notifications", skip:"Skip to search", brandCaption:"ⲭⲏⲙⲓ · Coptic Dictionary", shareTitle:"Coptic Dictionary · ⲭⲏⲙⲓ", dateLocale:"en-GB" },
+  fr: { searchPlaceholder:"Tapez un mot à rechercher…", searchButton:"Rechercher", searchHeading:"D'un mot à une histoire", loading:"Recherche…", enterWord:"Veuillez saisir un mot à rechercher !", results:"{n} résultats", noResult:"Ce mot n'est pas encore disponible ; il sera bientôt ajouté.", searchError:"Erreur de recherche ; vérifiez votre connexion et réessayez.", detailError:"Impossible de charger les détails de l'entrée.", moreResults:"Appuyez pour plus de sens　⌄", backToResults:"Retour aux résultats", fieldWord:"Mot", fieldMeaning:"Sens", fieldKind:"Type", fieldOrigin:"Origine", audioUnavailable:"Aucun fichier audio disponible pour cette entrée.", audioPlayError:"Impossible de lire l'audio ; essayez la synthèse vocale.", speechUnavailable:"Aucune prononciation disponible.", copied:"Texte copié", copyError:"Échec de la copie", shareError:"Impossible de créer la carte de partage ; réessayez.", shareToolError:"Impossible de charger l'outil d'image.", learnLink:"🤖 Bot Telegram — Dictionnaire copte", footerDesc:"Le Dictionnaire copte Ⲭⲏⲙⲓ est le premier dictionnaire copte parlé sur Internet. Il vous aidera à améliorer votre copte. Nous vous souhaitons une expérience unique.", downloadApp:"📱 Télécharger l'application", qrTitle:"Télécharger l'application du dictionnaire", qrHint:"Scannez le code QR avec votre appareil photo pour télécharger l'application", directDownload:"Ou cliquez ici pour le téléchargement direct ↓", qrError:"Impossible de récupérer le lien de téléchargement.", qrLoading:"Chargement…", newNotification:"Nouvelle notification !", notificationsTitle:"Nouvelles notifications", skip:"Aller à la recherche", brandCaption:"ⲭⲏⲙⲓ · Dictionnaire copte", shareTitle:"Dictionnaire copte · ⲭⲏⲙⲓ", dateLocale:"fr-FR" },
+  de: { searchPlaceholder:"Wort zum Suchen eingeben…", searchButton:"Suchen", searchHeading:"Von einem Wort zu einer Geschichte", loading:"Suche…", enterWord:"Bitte geben Sie ein Suchwort ein!", results:"{n} Ergebnisse", noResult:"Dieses Wort ist noch nicht verfügbar; es wird bald hinzugefügt.", searchError:"Suchfehler; Verbindung prüfen und erneut versuchen.", detailError:"Details konnten nicht geladen werden.", moreResults:"Tippen für weitere Bedeutungen　⌄", backToResults:"Zurück zu den Ergebnissen", fieldWord:"Wort", fieldMeaning:"Bedeutung", fieldKind:"Typ", fieldOrigin:"Herkunft", audioUnavailable:"Keine Audiodatei zum Download verfügbar.", audioPlayError:"Audio konnte nicht abgespielt werden; Sprachsynthese versuchen.", speechUnavailable:"Keine Aussprache verfügbar.", copied:"Text kopiert", copyError:"Kopieren fehlgeschlagen", shareError:"Share-Karte konnte nicht erstellt werden.", shareToolError:"Bildtool konnte nicht geladen werden.", learnLink:"🤖 Telegram-Bot — Koptisches Wörterbuch", footerDesc:"Das Koptische Wörterbuch Ⲭⲏⲙⲓ ist das erste gesprochene koptische Wörterbuch im Internet. Es hilft Ihnen, Ihr Koptisch zu verbessern. Wir wünschen Ihnen ein einzigartiges Erlebnis.", downloadApp:"📱 App herunterladen", qrTitle:"Wörterbuch-App herunterladen", qrHint:"Scannen Sie den QR-Code mit der Kamera, um die App herunterzuladen", directDownload:"Oder hier klicken für Direktdownload ↓", qrError:"Download-Link konnte nicht abgerufen werden.", qrLoading:"Laden…", newNotification:"Neue Benachrichtigung!", notificationsTitle:"Neue Benachrichtigungen", skip:"Zur Suche springen", brandCaption:"ⲭⲏⲙⲓ · Koptisches Wörterbuch", shareTitle:"Koptisches Wörterbuch · ⲭⲏⲙⲓ", dateLocale:"de-DE" }
 };
 let currentLang = "ar";
 function t(key, vars) {
@@ -56,6 +58,11 @@ function setLang(lang) {
   $("notificationsTitle").textContent = t("notificationsTitle");
   $("skipLink").textContent = t("skip");
   $("brandCaption").textContent = t("brandCaption");
+  $("footerDesc").textContent = t("footerDesc");
+  $("appDownloadBtn").textContent = t("downloadApp");
+  $("qrTitle").textContent = t("qrTitle");
+  $("qrHint").textContent = t("qrHint");
+  $("appDirectLink").textContent = t("directDownload");
   document.title = `ⲤⲞⲠⲦⲒⲤ ⲬⲎⲘⲒ — ${t("brandCaption")}`;
   updateDate();
 }
@@ -462,6 +469,38 @@ $("notificationsButton").addEventListener("click", () => toggleNotifications());
 $("closeNotifications").addEventListener("click", () => toggleNotifications(false));
 
 // ---- بدء التطبيق ----
+let appLinkCache = null;
+async function fetchLatestAppLink() {
+  if (appLinkCache) return appLinkCache;
+  try {
+    const res = await fetch(APP_CONFIG_URL);
+    const text = await res.text();
+    const m = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*?)\);?/);
+    const json = JSON.parse(m ? m[1] : "{}");
+    const rows = json?.table?.rows || [];
+    let last = "";
+    for (const row of rows) { const v = row?.c?.[0]?.v; if (v != null && String(v).trim()) last = String(v).trim(); }
+    appLinkCache = last || null;
+    return appLinkCache;
+  } catch (e) { console.error(e); return null; }
+}
+function openQrModal() {
+  const modal = $("qrModal"); modal.hidden = false;
+  const box = $("qrCodeContainer"); box.innerHTML = `<span class="qr-loading">${t("qrLoading")}</span>`;
+  $("appDirectLink").hidden = true;
+  fetchLatestAppLink().then((link) => {
+    if (!link) { box.innerHTML = `<span class="qr-loading">${t("qrError")}</span>`; return; }
+    box.innerHTML = "";
+    const img = new Image(); img.alt = "QR"; img.width = 200; img.height = 200;
+    img.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(link)}`;
+    box.append(img);
+    const direct = $("appDirectLink"); direct.href = link; direct.hidden = false;
+  });
+}
+$("appDownloadBtn").addEventListener("click", openQrModal);
+$("closeQrModal").addEventListener("click", () => { $("qrModal").hidden = true; });
+$("qrModal").addEventListener("click", (e) => { if (e.target === $("qrModal")) $("qrModal").hidden = true; });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("qrModal").hidden = true; });
 (async () => {
   updateDate(); setInterval(updateDate, 60_000);
   try {

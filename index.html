@@ -62,7 +62,11 @@
       </section>
 
       <footer class="site-footer">
-        <a class="learn-link" id="learnLink" href="https://t.me/Coptic2_bot" target="_blank" rel="noopener noreferrer">ابدأ تعلّم اللغة القبطية</a>
+        <p class="footer-desc" id="footerDesc">القاموس القبطي Ⲭⲏⲙⲓ هو أول قاموس قبطي ناطق على الإنترنت، وسيفيدك كثيراً على تحسين لغتك القبطية، نتمنى لك تجربة فريدة.</p>
+        <div class="footer-buttons">
+          <a class="learn-link" id="learnLink" href="https://t.me/Coptic_Dictionary_bot" target="_blank" rel="noopener noreferrer">🤖 بوت تيليجرام — القاموس القبطي</a>
+          <button class="learn-link" id="appDownloadBtn" type="button">📱 حمّل تطبيق القاموس</button>
+        </div>
         <span id="count" hidden>16,346</span>
       </footer>
     </main>
@@ -79,6 +83,15 @@
     <audio id="copySound" preload="none" src="https://assets.mixkit.co/active_storage/sfx/2999/2999-preview.mp3"></audio>
     <audio id="successSound" preload="none" src="https://assets.mixkit.co/active_storage/sfx/933/933.wav"></audio>
     <audio id="errorSound" preload="none" src="https://assets.mixkit.co/active_storage/sfx/1110/1110.wav"></audio>
+  </div>
+  <div id="qrModal" class="qr-modal" hidden role="dialog" aria-modal="true" aria-labelledby="qrTitle">
+    <div class="qr-modal-content">
+      <button id="closeQrModal" class="qr-close" type="button" aria-label="إغلاق">×</button>
+      <h3 id="qrTitle" class="qr-title">حمّل تطبيق القاموس على الموبايل</h3>
+      <p class="qr-hint" id="qrHint">امسح الباركود بالكاميرا لتحميل التطبيق</p>
+      <div id="qrCodeContainer" class="qr-code-container"><span class="qr-loading">جاري التحميل…</span></div>
+      <a id="appDirectLink" class="learn-link qr-direct" href="#" target="_blank" rel="noopener noreferrer" hidden>أو اضغط هنا للتحميل المباشر ↓</a>
+    </div>
   </div>
   <div id="shareStage" class="share-stage" aria-hidden="true"></div>
 
