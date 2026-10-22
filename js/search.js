@@ -75,6 +75,7 @@ export async function search(query) {
   if (!ws.length) return { results: [], total: 0 };
   const uniq = [...new Set(ws)].slice(0, 5);
   const shards = await Promise.all(uniq.map((w) => {
+    if ([...w].length < 2) return loadPrefixShards(shardKey(w, 1)); // حرف واحد: حمّل كل الفروع دائمًا
     const key = pickKey(w, keys);
     return keys.has(key) ? loadShard(key) : loadPrefixShards(shardKey(w, 1));
   }));

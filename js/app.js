@@ -151,13 +151,17 @@ async function updateSuggestions(query) {
   try { const result = await search(q); if (current === suggestSeq && input.value.trim() === q) renderSuggestions(q, result.results); }
   catch { if (current === suggestSeq) { suggestions.hidden = true; } }
 }
-function renderMeaning(value, query) {
+function renderMeaning(value, query, selectedMeaning) {
   const wrap = make("div", { class: "meaning-list" });
   const all = matchParts(value || "", query);
   if (!all.length) { wrap.textContent = value || "—"; return wrap; }
-  // اعرض فقط المعنى المطابق لطلب المستخدم؛ إن لم يوجد مطابق مباشر اعرض كل المعاني احتياطًا.
-  const matched = all.filter((p) => p.matched);
-  const list = matched.length ? matched : all;
+  let list = all.filter((p) => p.matched);
+  if (selectedMeaning) {
+    // المعنى المحدد الذي ضغط عليه المستخدم هو الوحيد الذي يظهر (سطر واحد).
+    const exact = all.filter((p) => normalize(p.text) === normalize(selectedMeaning));
+    if (exact.length) list = exact;
+  }
+  if (!list.length) list = all; // احتياط: إن لم يوجد مطابق اعرض كل المعاني
   list.forEach((part) => {
     const line = make("div", { class: "meaning-item" });
     line.append(part.matched ? make("mark", { text: part.text }) : document.createTextNode(part.text));
@@ -266,8 +270,7 @@ async function shareCard(card, record, query) {
   if (copticDate && gregorianDate) datesLine.append(document.createTextNode(" · "));
   if (gregorianDate) datesLine.append(make("span", { class: "share-date-greg", text: gregorianDate }));
   shareHead.append(datesLine);
-  const photo = make("img", { class: "share-photo", src: "assets/share-photo.jpg", alt: "" });
-  const children = [avatars, shareHead, info, photo];
+  const children = [avatars, shareHead, info];
   // باركود تحميل التطبيق (نفس نظام نافذة التحميل) أسفل البطاقة فوقه نص التحميل
   const appLink = await fetchLatestAppLink();
   if (appLink) {
@@ -300,7 +303,7 @@ function cardLine(label, value, className = "") {
   line.append(make("strong", { text: `${label}:` }), make("span", { class: className, text: value || "—" }));
   return line;
 }
-async function createResultCard(item, query, index) {
+async function createResultCard(item, query, index, selectedMeaning) {
   const record = await detail(item.id);
   const card = make("article", { class: "result-card" });
   const share = make("button", { class: "share-button", type: "button", title: "مشاركة بطاقة صورة", "aria-label": "مشاركة بطاقة صورة", text: "↗" });
@@ -325,7 +328,7 @@ async function createResultCard(item, query, index) {
   const info = make("div", { class: "info-section" });
   const meaning = make("div", { class: "result-line meaning-line" });
   meaning.append(make("strong", { text: `${t("fieldMeaning")}:` }));
-  const meaningContent = make("span"); meaningContent.append(renderMeaning(record.meaning || item.meaning, query));
+  const meaningContent = make("span"); meaningContent.append(renderMeaning(record.meaning || item.meaning, query, selectedMeaning));
   if (!/[\u0600-\u06ff]/u.test(record.meaning || item.meaning || "")) {
     const copy = make("button", { class: "copy-button", type: "button", title: "نسخ المعنى", "aria-label": "نسخ المعنى", text: "▢" });
     copy.addEventListener("click", async () => { try { await navigator.clipboard.writeText(record.meaning || item.meaning); playSfx("copySound"); toast(t("copied")); } catch { toast(t("copyError")); } });
@@ -363,17 +366,20 @@ function renderResultList(rows, query) {
   const q = query.trim().toLowerCase();
   const isCopticQuery = /[\u2C80-\u2CFF\u03E2-\u03EF]/.test(q);
   const list = make("div", { class: "result-list" });
-  if (isCopticQuery) {
+  const appendCopticItems = () => {
     const seen = new Set();
-    rows.forEach((item) => {
+    for (const item of rows) {
       const coptic = clean(item.coptic).trim();
-      if (!coptic || seen.has(coptic)) return;
+      if (!coptic || seen.has(coptic)) continue;
       seen.add(coptic);
       const btn = make("button", { class: "result-item", type: "button" });
       btn.append(make("span", { class: "ri-word cop", text: coptic }));
       btn.addEventListener("click", () => { void showDetail(item, query); });
       list.append(btn);
-    });
+    }
+  };
+  if (isCopticQuery) {
+    appendCopticItems();
   } else {
     const seen = new Set();
     const nq = normalize(query);
@@ -381,7 +387,7 @@ function renderResultList(rows, query) {
     for (const item of rows) {
       const meaningWords = parts(item.meaning || "");
       for (const mw of meaningWords) {
-        if (!partMatches(mw, query)) continue; // فقط المعاني المطابقة (بادئة الكلمة المكتوبة)
+        if (!partMatches(mw, query)) continue;
         const key = normalize(mw);
         if (seen.has(key)) continue;
         seen.add(key);
@@ -390,28 +396,33 @@ function renderResultList(rows, query) {
       }
       if (wordItems.length >= 60) break;
     }
-    wordItems.sort((a, b) => {
-      const ap = normalize(a.word).startsWith(nq) ? 0 : 1; // الكلمات التي تبدأ بالاستعلام أولًا
-      const bp = normalize(b.word).startsWith(nq) ? 0 : 1;
-      if (ap !== bp) return ap - bp;
-      return normalize(a.word).length - normalize(b.word).length || a.word.localeCompare(b.word);
-    });
-    wordItems.forEach(({ word, item }) => {
-      const btn = make("button", { class: "result-item", type: "button" });
-      const span = make("span", { class: "ri-word", text: word });
-      if (normalize(word).startsWith(nq)) span.classList.add("ri-word-match");
-      btn.append(span);
-      btn.addEventListener("click", () => { void showDetail(item, query); });
-      list.append(btn);
-    });
+    if (!wordItems.length) {
+      // استعلام لاتيني (إنجليزي/فرنسي/ألماني): المعنى عربي فلا يطابق، اعرض الكلمة القبطية لكل نتيجة.
+      appendCopticItems();
+    } else {
+      wordItems.sort((a, b) => {
+        const ap = normalize(a.word).startsWith(nq) ? 0 : 1;
+        const bp = normalize(b.word).startsWith(nq) ? 0 : 1;
+        if (ap !== bp) return ap - bp;
+        return normalize(a.word).length - normalize(b.word).length || a.word.localeCompare(b.word);
+      });
+      wordItems.forEach(({ word, item }) => {
+        const btn = make("button", { class: "result-item", type: "button" });
+        const span = make("span", { class: "ri-word", text: word });
+        if (normalize(word).startsWith(nq)) span.classList.add("ri-word-match");
+        btn.append(span);
+        btn.addEventListener("click", () => { void showDetail(item, query, word); });
+        list.append(btn);
+      });
+    }
   }
   resultsContainer.append(list);
 }
-async function showDetail(item, query) {
+async function showDetail(item, query, selectedMeaning) {
   const seq = liveSeq;
   loader.hidden = false;
   try {
-    const card = await createResultCard(item, query, 0);
+    const card = await createResultCard(item, query, 0, selectedMeaning);
     if (seq !== liveSeq) return;
     const back = make("button", { class: "more-results-btn back-btn", type: "button", text: "← " + t("backToResults") });
     back.addEventListener("click", () => void liveSearch(query));
