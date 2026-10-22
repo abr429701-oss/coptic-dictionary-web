@@ -1,4 +1,5 @@
 import { init, search, detail, count, matchParts } from "./search.js?b=__B__";
+import { parts } from "./norm.js?b=__B__";
 import { spokenText } from "./speech.js?b=__B__";
 
 const AUDIO_BASE = "https://raw.githubusercontent.com/abr429701-oss/coptic-dictionary-bot/audio";
@@ -91,17 +92,37 @@ function updateDate() {
 }
 
 function renderSuggestions(query, rows) {
-  const unique = new Set();
+  const q = query.trim().toLowerCase();
+  const isCopticQuery = /[\u2C80-\u2CFF\u03E2-\u03EF]/.test(q);
+  const seen = new Set();
   const options = [];
   for (const row of rows) {
-    const word = clean(row.coptic).trim();
-    const label = `${word} ${row.meaning || ""}`;
-    if (word && !unique.has(word)) { unique.add(word); options.push({ word, meaning: row.meaning || "" }); }
+    const coptic = clean(row.coptic).trim();
+    if (!coptic) continue;
+    const meaningWords = parts(row.meaning || "");
+    if (!isCopticQuery && meaningWords.length > 0) {
+      for (const mw of meaningWords) {
+        const key = mw.toLowerCase();
+        if (seen.has(key)) continue;
+        if (q && !key.includes(q)) continue;
+        seen.add(key);
+        options.push({ word: mw, coptic });
+        if (options.length >= 7) break;
+      }
+    } else {
+      if (seen.has(coptic)) continue;
+      seen.add(coptic);
+      options.push({ word: coptic, coptic, meaning: meaningWords.join("، ") });
+    }
     if (options.length >= 7) break;
   }
   if (!query || !options.length) { suggestions.hidden = true; suggestions.replaceChildren(); return; }
   suggestions.replaceChildren(...options.map((option) => {
-    const button = make("button", { class: "suggestion", type: "button", role: "option" }, make("span", { class: "s-word cop", text: option.word }), make("span", { class: "s-meaning", text: option.meaning }));
+    const isCopticWord = option.word === option.coptic;
+    const wordSpan = make("span", { class: "s-word" + (isCopticWord ? " cop" : ""), text: option.word });
+    const subText = isCopticWord ? (option.meaning || "") : option.coptic;
+    const subSpan = make("span", { class: "s-meaning" + (isCopticWord ? "" : " cop"), text: subText });
+    const button = make("button", { class: "suggestion", type: "button", role: "option" }, wordSpan, subSpan);
     button.addEventListener("click", () => { input.value = option.word; suggestions.hidden = true; void performSearch(option.word); });
     return make("li", {}, button);
   }));
@@ -116,10 +137,14 @@ async function updateSuggestions(query) {
   catch { if (current === suggestSeq) { suggestions.hidden = true; } }
 }
 function renderMeaning(value, query) {
-  const wrap = make("span", { class: "meaning" });
-  const parts = matchParts(value || "", query);
-  parts.forEach((part, index) => { if (index) wrap.append("، "); wrap.append(part.matched ? make("mark", { text: part.text }) : document.createTextNode(part.text)); });
-  if (!parts.length) wrap.textContent = value || "—";
+  const wrap = make("div", { class: "meaning-list" });
+  const matchedParts = matchParts(value || "", query);
+  if (!matchedParts.length) { wrap.textContent = value || "—"; return wrap; }
+  matchedParts.forEach((part) => {
+    const line = make("div", { class: "meaning-item" });
+    line.append(part.matched ? make("mark", { text: part.text }) : document.createTextNode(part.text));
+    wrap.append(line);
+  });
   return wrap;
 }
 function resolveAudio(record) {
