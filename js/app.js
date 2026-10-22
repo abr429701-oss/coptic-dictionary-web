@@ -59,7 +59,6 @@ function setLang(lang) {
   $("notificationsTitle").textContent = t("notificationsTitle");
   $("skipLink").textContent = t("skip");
   $("brandCaption").textContent = t("brandCaption");
-  $("footerDesc").textContent = t("footerDesc");
   $("appDownloadBtn").textContent = t("downloadApp");
   $("qrTitle").textContent = t("qrTitle");
   $("qrHint").textContent = t("qrHint");
