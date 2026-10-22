@@ -33,3 +33,4 @@
 .share-qr-block{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:10px}
 .share-qr-caption{margin:0;color:var(--navy);font-size:20px;font-weight:800;letter-spacing:.3px}
 .share-qr{width:180px;height:180px;border:1px solid var(--line-strong);border-radius:12px;background:#fff;padding:8px;object-fit:contain}
+.share-logo{width:130px!important;height:130px!important;border:0!important;border-radius:0!important;box-shadow:none!important;object-fit:contain!important;background:transparent}

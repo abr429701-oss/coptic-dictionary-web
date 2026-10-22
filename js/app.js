@@ -254,10 +254,7 @@ async function shareCard(card, record, query) {
     const line = make("p"); line.append(make("strong", { text: `${label}: ` }), document.createTextNode(value)); info.append(line);
   }
   const avatars = make("div", { class: "share-avatars" });
-  const first = make("div", { class: "share-mark", text: "ⲭ" }); avatars.append(first);
-  const avatar = make("img", { src: "assets/share-abram.png", alt: "" });
-  const flag = make("img", { src: "assets/share-egypt.svg", alt: "" });
-  avatars.append(avatar, flag);
+  avatars.append(make("img", { class: "share-logo", src: "assets/site-logo-192.png", alt: "Coptic Dictionary logo" }));
   // العنوان + التاريخ القبطي (اتجاه صحيح غير معكوس) + التاريخ الميلادي أسفل الصور الثلاثة
   const dateDivs = $("date-display").querySelectorAll("div");
   const copticDate = dateDivs[1]?.textContent?.trim() || "";
