@@ -1,7 +1,7 @@
 // عميل البحث: لا يحمّل القاموس كله، بل ملف الفهرس الصغير الذي يخص ما تكتبه فقط.
-import { words, parts, pickKey } from "./norm.js";
+import { words, parts, pickKey, shardKey } from "./norm.js";
 
-const MAX_RESULTS = 40;
+const MAX_RESULTS = 60;
 const shardCache = new Map();   // مفتاح الملف -> Promise
 const detailCache = new Map();  // رقم المجموعة -> Promise
 let manifest = null;
@@ -38,6 +38,20 @@ function loadShard(key) {
   return promise;
 }
 
+// لحرف واحد (أو مفتاح مفقود): يجمع كل ملفات الفهرس التي تبدأ بنفس الحرف الأول.
+function loadPrefixShards(prefixKey) {
+  const matching = [...keys].filter((k) => k === prefixKey || k.startsWith(prefixKey + "_")).slice(0, 120);
+  if (!matching.length) return Promise.resolve({ t: {}, r: {} });
+  return Promise.all(matching.map(loadShard)).then((shards) => {
+    const t = {}, r = {};
+    for (const s of shards) {
+      if (!s) continue;
+      Object.assign(t, s.t);
+      Object.assign(r, s.r);
+    }
+    return { t, r };
+  });
+}
 // يجمع مرشحي كلمة واحدة: id -> نقاط (الأقل أفضل) من ملف الفهرس.
 function candidates(shard, word, prefix) {
   const found = new Map();
@@ -60,7 +74,10 @@ export async function search(query) {
   const ws = words(query);
   if (!ws.length) return { results: [], total: 0 };
   const uniq = [...new Set(ws)].slice(0, 5);
-  const shards = await Promise.all(uniq.map((w) => loadShard(pickKey(w, keys))));
+  const shards = await Promise.all(uniq.map((w) => {
+    const key = pickKey(w, keys);
+    return keys.has(key) ? loadShard(key) : loadPrefixShards(shardKey(w, 1));
+  }));
   let merged = null;
   const records = {};
   uniq.forEach((word, index) => {

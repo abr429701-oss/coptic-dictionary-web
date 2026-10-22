@@ -386,9 +386,9 @@ function renderResultList(rows, query) {
         if (seen.has(key)) continue;
         seen.add(key);
         wordItems.push({ word: mw, item });
-        if (wordItems.length >= 40) break;
+        if (wordItems.length >= 60) break;
       }
-      if (wordItems.length >= 40) break;
+      if (wordItems.length >= 60) break;
     }
     wordItems.sort((a, b) => {
       const ap = normalize(a.word).startsWith(nq) ? 0 : 1; // الكلمات التي تبدأ بالاستعلام أولًا
