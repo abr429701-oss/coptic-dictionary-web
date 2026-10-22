@@ -19,6 +19,45 @@ const store = {
   get(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } },
   set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private browsing */ } }
 };
+const I18N = {
+  ar: { searchPlaceholder:"اكتب كلمة للبحث…", searchButton:"ابحث", searchHeading:"من كلمةٍ إلى حكاية", loading:"جاري البحث…", enterWord:"الرجاء إدخال كلمة للبحث!", results:"{n} نتيجة", noResult:"الكلمة غير موجودة حاليًا؛ ستتم الإضافة قريبًا.", searchError:"حدث خطأ في البحث؛ تحقق من الاتصال وحاول مرة أخرى.", detailError:"تعذّر تحميل تفاصيل المدخل.", moreResults:"اضغط لمعرفة المزيد من المعاني　⌄", fieldWord:"الكلمة", fieldMeaning:"المعنى", fieldKind:"النوع", fieldOrigin:"الأصل", audioUnavailable:"لا يتوفر ملف صوت للتنزيل لهذا المدخل.", audioPlayError:"تعذّر تشغيل الملف الصوتي؛ جرّب النطق الآلي.", speechUnavailable:"لا يتوفر نطق لهذا المدخل.", copied:"تم نسخ النص", copyError:"تعذّر النسخ", shareError:"تعذّر إنشاء بطاقة المشاركة؛ حاول مرة أخرى.", shareToolError:"تعذّر تحميل أداة إنشاء الصورة.", learnLink:"ابدأ تعلّم اللغة القبطية", newNotification:"هناك إشعار جديد!", notificationsTitle:"الإشعارات الجديدة", skip:"انتقل إلى البحث", brandCaption:"ⲭⲏⲙⲓ · القاموس القبطي", shareTitle:"القاموس القبطي · ⲭⲏⲙⲓ", dateLocale:"ar-EG" },
+  en: { searchPlaceholder:"Type a word to search…", searchButton:"Search", searchHeading:"From a word to a story", loading:"Searching…", enterWord:"Please enter a word to search!", results:"{n} results", noResult:"This word is not yet available; it will be added soon.", searchError:"Search error; check your connection and try again.", detailError:"Could not load entry details.", moreResults:"Tap for more meanings　⌄", fieldWord:"Word", fieldMeaning:"Meaning", fieldKind:"Type", fieldOrigin:"Origin", audioUnavailable:"No audio file available for download for this entry.", audioPlayError:"Could not play the audio; try text-to-speech.", speechUnavailable:"No pronunciation available for this entry.", copied:"Text copied", copyError:"Copy failed", shareError:"Could not create share card; try again.", shareToolError:"Could not load the image tool.", learnLink:"Start learning Coptic", newNotification:"New notification!", notificationsTitle:"New notifications", skip:"Skip to search", brandCaption:"ⲭⲏⲙⲓ · Coptic Dictionary", shareTitle:"Coptic Dictionary · ⲭⲏⲙⲓ", dateLocale:"en-GB" },
+  fr: { searchPlaceholder:"Tapez un mot à rechercher…", searchButton:"Rechercher", searchHeading:"D'un mot à une histoire", loading:"Recherche…", enterWord:"Veuillez saisir un mot à rechercher !", results:"{n} résultats", noResult:"Ce mot n'est pas encore disponible ; il sera bientôt ajouté.", searchError:"Erreur de recherche ; vérifiez votre connexion et réessayez.", detailError:"Impossible de charger les détails de l'entrée.", moreResults:"Appuyez pour plus de sens　⌄", fieldWord:"Mot", fieldMeaning:"Sens", fieldKind:"Type", fieldOrigin:"Origine", audioUnavailable:"Aucun fichier audio disponible pour cette entrée.", audioPlayError:"Impossible de lire l'audio ; essayez la synthèse vocale.", speechUnavailable:"Aucune prononciation disponible.", copied:"Texte copié", copyError:"Échec de la copie", shareError:"Impossible de créer la carte de partage ; réessayez.", shareToolError:"Impossible de charger l'outil d'image.", learnLink:"Commencez à apprendre le copte", newNotification:"Nouvelle notification !", notificationsTitle:"Nouvelles notifications", skip:"Aller à la recherche", brandCaption:"ⲭⲏⲙⲓ · Dictionnaire copte", shareTitle:"Dictionnaire copte · ⲭⲏⲙⲓ", dateLocale:"fr-FR" },
+  de: { searchPlaceholder:"Wort zum Suchen eingeben…", searchButton:"Suchen", searchHeading:"Von einem Wort zu einer Geschichte", loading:"Suche…", enterWord:"Bitte geben Sie ein Suchwort ein!", results:"{n} Ergebnisse", noResult:"Dieses Wort ist noch nicht verfügbar; es wird bald hinzugefügt.", searchError:"Suchfehler; Verbindung prüfen und erneut versuchen.", detailError:"Details konnten nicht geladen werden.", moreResults:"Tippen für weitere Bedeutungen　⌄", fieldWord:"Wort", fieldMeaning:"Bedeutung", fieldKind:"Typ", fieldOrigin:"Herkunft", audioUnavailable:"Keine Audiodatei zum Download verfügbar.", audioPlayError:"Audio konnte nicht abgespielt werden; Sprachsynthese versuchen.", speechUnavailable:"Keine Aussprache verfügbar.", copied:"Text kopiert", copyError:"Kopieren fehlgeschlagen", shareError:"Share-Karte konnte nicht erstellt werden.", shareToolError:"Bildtool konnte nicht geladen werden.", learnLink:"Koptisch lernen beginnen", newNotification:"Neue Benachrichtigung!", notificationsTitle:"Neue Benachrichtigungen", skip:"Zur Suche springen", brandCaption:"ⲭⲏⲙⲓ · Koptisches Wörterbuch", shareTitle:"Koptisches Wörterbuch · ⲭⲏⲙⲓ", dateLocale:"de-DE" }
+};
+let currentLang = "ar";
+function t(key, vars) {
+  let val = (I18N[currentLang] || I18N.ar)[key] ?? I18N.ar[key] ?? key;
+  if (vars) for (const [k, v] of Object.entries(vars)) val = val.replaceAll(`{${k}}`, String(v));
+  return val;
+}
+function detectLang(text) {
+  if (/[\u0600-\u06FF]/.test(text)) return "ar";
+  if (/[\u2C80-\u2CFF\u03E2-\u03EF]/.test(text)) return "ar";
+  if (/[äöüßÄÖÜ]/.test(text)) return "de";
+  if (/[éèêëàâùûîïçœÉÈÊËÀÂÙÛÎÏÇŒ]/.test(text)) return "fr";
+  const lower = text.toLowerCase();
+  if (/\b(le|la|les|un|une|des|de|du|et|ou|est|sont|pour|avec|sans|sous|sur|dans|par|mais|donc|car|que|qui|quoi|dont|non|oui|je|tu|il|elle|nous|vous|ils|elles|cet|cette|ces|mon|ma|mes|ton|ta|tes|son|sa|ses|notre|nos|votre|vos|leur|leurs|comment|pourquoi|quand)\b/.test(lower)) return "fr";
+  if (/\b(der|die|das|ein|eine|einen|einem|einer|eines|und|oder|ist|sind|von|zu|mit|für|auf|in|im|an|am|bei|nach|seit|aus|aber|wenn|weil|dass|nicht|kein|keine|ja|nein|ich|du|er|sie|es|wir|ihr|mir|dich|mich|sich|was|wer|wie|wo|wann|warum)\b/.test(lower)) return "de";
+  return "en";
+}
+function setLang(lang) {
+  if (lang === currentLang) return;
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  $("wordInput").placeholder = t("searchPlaceholder");
+  $("searchButtonText").textContent = t("searchButton");
+  $("searchHeading").textContent = t("searchHeading");
+  $("loaderText").textContent = t("loading");
+  $("learnLink").textContent = t("learnLink");
+  $("notificationBar").textContent = t("newNotification");
+  $("notificationsTitle").textContent = t("notificationsTitle");
+  $("skipLink").textContent = t("skip");
+  $("brandCaption").textContent = t("brandCaption");
+  document.title = `ⲤⲞⲠⲦⲒⲤ ⲬⲎⲘⲒ — ${t("brandCaption")}`;
+  updateDate();
+}
 const clean = (s) => String(s ?? "").replaceAll("`", "̀");
 const make = (tag, attrs = {}, ...children) => {
   const node = document.createElement(tag);
@@ -46,8 +85,8 @@ function updateDate() {
   let dayOfYear = diff - Math.floor(year * 365.25), month = 0;
   while (dayOfYear >= 30 && month < 12) { dayOfYear -= 30; month++; }
   const coptic = `${dayOfYear + 1} ${months[month]} ${year + 1}`;
-  const weekday = new Intl.DateTimeFormat("ar-EG", { weekday: "long" }).format(now);
-  const gregorian = new Intl.DateTimeFormat("ar-EG", { year: "numeric", month: "long", day: "numeric" }).format(now);
+  const weekday = new Intl.DateTimeFormat(t("dateLocale"), { weekday: "long" }).format(now);
+  const gregorian = new Intl.DateTimeFormat(t("dateLocale"), { year: "numeric", month: "long", day: "numeric" }).format(now);
   $("date-display").replaceChildren(make("div", { text: weekday }), make("div", { text: coptic }), make("div", { text: gregorian }));
 }
 
@@ -125,7 +164,7 @@ function buildAudioPlayer(record, query) {
     if (src) {
       if (audio.paused) {
         try { await audio.play(); play.textContent = "Ⅱ"; }
-        catch { toast("تعذّر تشغيل الملف الصوتي؛ جرّب النطق الآلي."); speakFallback(record); }
+        catch { toast(t("audioPlayError")); speakFallback(record); }
       } else { audio.pause(); play.textContent = "▶"; }
     } else { speakFallback(record); play.textContent = "Ⅱ"; }
   });
@@ -140,7 +179,7 @@ function buildAudioPlayer(record, query) {
   progress.addEventListener("keydown", (event) => { if (["ArrowLeft","ArrowRight"].includes(event.key) && audio.src && Number.isFinite(audio.duration)) { audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + (event.key === "ArrowRight" ? 5 : -5))); } });
   download.addEventListener("click", async () => {
     const src = await ensureSource();
-    if (!src) { toast("لا يتوفر ملف صوت للتنزيل لهذا المدخل."); return; }
+    if (!src) { toast(t("audioUnavailable")); return; }
     const anchor = make("a", { href: src.url, download: `${clean(record.coptic).replace(/\s+/g,"_")}-${src.name}`, target: "_blank", rel: "noopener noreferrer" });
     document.body.append(anchor); anchor.click(); anchor.remove(); playSfx("copySound");
   });
@@ -150,7 +189,7 @@ function buildAudioPlayer(record, query) {
 }
 function speakFallback(record) {
   const text = spokenText(record);
-  if (!text || !("speechSynthesis" in window)) { toast("لا يتوفر نطق لهذا المدخل."); return; }
+  if (!text || !("speechSynthesis" in window)) { toast(t("speechUnavailable")); return; }
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text); utterance.lang = "en-US"; utterance.rate = 0.62;
   utterance.addEventListener("end", () => { const button = document.querySelector(".audio-control"); if (button) button.textContent = "▶"; });
@@ -158,13 +197,13 @@ function speakFallback(record) {
 }
 function safeFilename(text) { return String(text || "coptic-dictionary").replace(/[\\/:*?"<>|]/g, "-").slice(0, 70); }
 async function shareCard(card, record, query) {
-  if (typeof window.html2canvas !== "function") { toast("تعذّر تحميل أداة إنشاء الصورة."); return; }
+  if (typeof window.html2canvas !== "function") { toast(t("shareToolError")); return; }
   playSfx("clickSound");
   const stage = $("shareStage");
   const refs = Array.isArray(record.referenceMatches) ? record.referenceMatches : [];
   const originalMeaning = refs.find((item) => item.meaning)?.meaning || record.meanings.join("، ");
   const info = make("div", { class: "share-information" });
-  for (const [label, value] of [["الكلمة", query], ["القبطية", clean(record.coptic)], ["المعنى", originalMeaning], ["النوع", record.kind], ["الأصل", record.origin]]) {
+  for (const [label, value] of [[t("fieldWord"), clean(record.coptic)], [t("fieldMeaning"), originalMeaning], [t("fieldKind"), record.kind], [t("fieldOrigin"), record.origin]]) {
     if (!value) continue;
     const line = make("p"); line.append(make("strong", { text: `${label}: ` }), document.createTextNode(value)); info.append(line);
   }
@@ -175,7 +214,7 @@ async function shareCard(card, record, query) {
   avatars.append(avatar, flag);
   const date = make("div", { class: "share-date", text: `${$("date-display").textContent.replace(/\s+/g, " · ")} · ⲭⲏⲙⲓ` });
   const photo = make("img", { class: "share-photo", src: "assets/share-photo.jpg", alt: "" });
-  const exportNode = make("div", { class: "share-export" }, avatars, make("h2", { class: "share-title", text: "القاموس القبطي · ⲭⲏⲙⲓ" }), info, date, photo);
+  const exportNode = make("div", { class: "share-export" }, avatars, make("h2", { class: "share-title", text: t("shareTitle") }), info, date, photo);
   stage.replaceChildren(exportNode);
   try {
     await Promise.all([...exportNode.querySelectorAll("img")].map((img) => img.decode().catch(() => {})));
@@ -184,11 +223,11 @@ async function shareCard(card, record, query) {
     if (!blob) throw new Error("image export failed");
     const filename = `${safeFilename(query)}-${safeFilename(record.coptic)}.png`;
     if (navigator.share && navigator.canShare?.({ files: [new File([blob], filename, { type: "image/png" })] })) {
-      await navigator.share({ title: "ⲭⲏⲙⲓ — القاموس القبطي", files: [new File([blob], filename, { type: "image/png" })] });
+      await navigator.share({ title: t("shareTitle"), files: [new File([blob], filename, { type: "image/png" })] });
     } else {
       const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 3000);
     }
-  } catch (error) { console.error(error); toast("تعذّر إنشاء بطاقة المشاركة؛ حاول مرة أخرى."); }
+  } catch (error) { console.error(error); toast(t("shareError")); }
   finally { stage.replaceChildren(); }
 }
 function cardLine(label, value, className = "") {
@@ -202,18 +241,18 @@ async function createResultCard(item, query, index) {
   const share = make("button", { class: "share-button", type: "button", title: "مشاركة بطاقة صورة", "aria-label": "مشاركة بطاقة صورة", text: "↗" });
   share.addEventListener("click", () => void shareCard(card, record, query)); card.append(share);
   const info = make("div", { class: "info-section" });
-  info.append(cardLine("الكلمة", query), cardLine("القبطية", clean(record.coptic), "coptic-word cop"));
+  info.append(cardLine(t("fieldWord"), clean(record.coptic), "coptic-word cop"));
   const meaning = make("div", { class: "result-line" });
-  meaning.append(make("strong", { text: "المعنى:" }));
+  meaning.append(make("strong", { text: `${t("fieldMeaning")}:` }));
   const meaningContent = make("span"); meaningContent.append(renderMeaning(record.meaning || item.meaning, query));
   if (!/[\u0600-\u06ff]/u.test(record.meaning || item.meaning || "")) {
     const copy = make("button", { class: "copy-button", type: "button", title: "نسخ المعنى", "aria-label": "نسخ المعنى", text: "▢" });
-    copy.addEventListener("click", async () => { try { await navigator.clipboard.writeText(record.meaning || item.meaning); playSfx("copySound"); toast("تم نسخ النص"); } catch { toast("تعذّر النسخ"); } });
+    copy.addEventListener("click", async () => { try { await navigator.clipboard.writeText(record.meaning || item.meaning); playSfx("copySound"); toast(t("copied")); } catch { toast(t("copyError")); } });
     meaningContent.append(copy);
   }
   meaning.append(meaningContent); info.append(meaning);
   const reference = Array.isArray(record.referenceMatches) ? record.referenceMatches[0] : null;
-  info.append(cardLine("النوع", reference?.kind || record.kind), cardLine("الأصل", reference?.origin || record.origin));
+  info.append(cardLine(t("fieldKind"), reference?.kind || record.kind), cardLine(t("fieldOrigin"), reference?.origin || record.origin));
   info.append(buildAudioPlayer(record, query)); card.append(info);
   return card;
 }
@@ -227,15 +266,16 @@ async function displayCurrentResult() {
     if (seq !== searchSequence) return;
     resultsContainer.replaceChildren(card);
     if (resultRows.length > currentIndex + 1) {
-      const more = make("button", { class: "more-results-btn", type: "button", text: "اضغط لمعرفة المزيد من المعاني　⌄" });
+      const more = make("button", { class: "more-results-btn", type: "button", text: t("moreResults") });
       more.addEventListener("click", () => { currentIndex++; void displayCurrentResult(); });
       resultsContainer.append(more);
     }
-  } catch (error) { console.error(error); message.textContent = "تعذّر تحميل تفاصيل المدخل."; }
+  } catch (error) { console.error(error); message.textContent = t("detailError"); }
 }
 async function performSearch(raw) {
   const query = String(raw ?? "").trim();
-  if (!query) { ++searchSequence; loader.hidden = true; searchButton.disabled = false; message.textContent = "الرجاء إدخال كلمة للبحث!"; resultsContainer.replaceChildren(); input.focus(); return; }
+  setLang(detectLang(query));
+  if (!query) { ++searchSequence; loader.hidden = true; searchButton.disabled = false; message.textContent = t("enterWord"); resultsContainer.replaceChildren(); input.focus(); return; }
   suggestions.hidden = true;
   const seq = ++searchSequence;
   currentQuery = query; currentIndex = 0; resultRows = [];
@@ -244,8 +284,8 @@ async function performSearch(raw) {
     const data = await search(query);
     if (seq !== searchSequence) return;
     resultRows = data.results;
-    if (!resultRows.length) { message.textContent = "الكلمة غير موجودة حاليًا؛ ستتم الإضافة قريبًا."; message.classList.add("error"); playSfx("errorSound"); return; }
-    message.textContent = `${data.total.toLocaleString("ar-EG")} نتيجة`;
+    if (!resultRows.length) { message.textContent = t("noResult"); message.classList.add("error"); playSfx("errorSound"); return; }
+    message.textContent = t("results", { n: data.total.toLocaleString(t("dateLocale")) });
     message.classList.remove("error");
     playSfx("successSound");
     loader.hidden = true; searchButton.disabled = false;
@@ -253,7 +293,7 @@ async function performSearch(raw) {
     const params = new URLSearchParams(location.search); params.set("q", query); params.delete("w"); history.replaceState({}, "", `${location.pathname}?${params}`);
   } catch (error) {
     if (seq !== searchSequence) return;
-    console.error(error); message.textContent = "حدث خطأ في البحث؛ تحقق من الاتصال وحاول مرة أخرى."; message.classList.add("error"); playSfx("errorSound");
+    console.error(error); message.textContent = t("searchError"); message.classList.add("error"); playSfx("errorSound");
   } finally { loader.hidden = true; searchButton.disabled = false; }
 }
 

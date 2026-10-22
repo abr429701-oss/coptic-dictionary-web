@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>ⲭⲏⲙⲓ — القاموس القبطي</title>
-  <meta name="description" content="ابحث في القاموس القبطي البحيري بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية، واستمع إلى النطق وشارك النتيجة.">
+  <meta name="description" content="ابحث في القاموس القبطي بالقبطية أو العربية أو الإنجليزية أو الفرنسية أو الألمانية، واستمع إلى النطق وشارك النتيجة.">
   <meta name="theme-color" content="#f4f0e7">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="assets/site-logo-192.png">
@@ -16,14 +16,14 @@
   <script>window.__MANIFEST__ = null; /*MANIFEST*/</script>
 </head>
 <body>
-  <a class="skip" href="#wordInput">انتقل إلى البحث</a>
+  <a class="skip" id="skipLink" href="#wordInput">انتقل إلى البحث</a>
   <div class="bg-ornament" aria-hidden="true"></div>
   <div class="page-wrap">
     <main class="container" id="app">
       <header class="site-header">
-        <a class="wordmark" href="./" aria-label="القاموس القبطي ⲭⲏⲙⲓ">
+        <a class="wordmark" href="./" aria-label="Coptic Dictionary ⲤⲞⲠⲦⲒⲤ ⲬⲎⲘⲒ">
           <span class="brand-logo" aria-hidden="true"><img src="assets/site-logo-192.png" width="48" height="48" alt=""></span>
-          <span class="brand-copy"><span class="brand-name">القاموس القبطي <svg class="brand-book" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A3.5 3.5 0 0 1 7.5 2H12v18H7.5A3.5 3.5 0 0 0 4 23V5.5Z"/><path d="M20 5.5A3.5 3.5 0 0 0 16.5 2H12v18h4.5A3.5 3.5 0 0 1 20 23V5.5Z"/><path d="M7 6h2M15 6h2"/></svg></span><span class="brand-caption">ⲭⲏⲙⲓ · Coptic · Bohairic</span></span>
+          <span class="brand-copy"><span class="brand-name coptic-title">ⲤⲞⲠⲦⲒⲤ ⲬⲎⲘⲒ</span><span class="brand-caption" id="brandCaption">ⲭⲏⲙⲓ · Coptic</span></span>
         </a>
         <div class="header-actions">
           <button id="notificationsButton" class="notifications-button" type="button" aria-label="الإشعارات" aria-expanded="false">
@@ -48,7 +48,7 @@
               <button id="clearButton" class="clear-button" type="button" aria-label="مسح البحث" hidden>×</button>
               <button id="keyboardTrigger" class="keyboard-trigger cop" type="button" aria-label="لوحة المفاتيح القبطية" aria-expanded="false" title="لوحة المفاتيح القبطية">ⲁ</button>
             </div>
-            <button id="searchButton" class="search-button" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.6"/><path d="m16 16 5 5"/></svg><span>ابحث</span></button>
+            <button id="searchButton" class="search-button" type="submit"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.6"/><path d="m16 16 5 5"/></svg><span id="searchButtonText">ابحث</span></button>
           </form>
           <ul id="suggestions" class="suggestions" role="listbox" aria-label="اقتراحات البحث" hidden></ul>
           <div id="coptic-keyboard" class="coptic-keyboard" hidden aria-label="لوحة المفاتيح القبطية"></div>
@@ -56,13 +56,13 @@
       </section>
 
       <section class="results-area" aria-label="نتائج البحث">
-        <div id="loaderContainer" class="loader-container" hidden><span class="loader" aria-hidden="true"></span><span>جاري البحث…</span></div>
+        <div id="loaderContainer" class="loader-container" hidden><span class="loader" aria-hidden="true"></span><span id="loaderText">جاري البحث…</span></div>
         <div id="searchMessage" class="search-message" role="status" aria-live="polite"></div>
         <div id="results-container" class="results-container"></div>
       </section>
 
       <footer class="site-footer">
-        <a class="learn-link" href="https://t.me/Coptic2_bot" target="_blank" rel="noopener noreferrer">ابدأ تعلّم اللغة القبطية</a>
+        <a class="learn-link" id="learnLink" href="https://t.me/Coptic2_bot" target="_blank" rel="noopener noreferrer">ابدأ تعلّم اللغة القبطية</a>
         <span id="count" hidden>16,346</span>
       </footer>
     </main>
@@ -70,7 +70,7 @@
 
   <div id="notificationBar" class="notification-bar" role="status" hidden>هناك إشعار جديد!</div>
   <section id="notificationsWindow" class="notifications-window" aria-label="الإشعارات" hidden>
-    <div class="notification-header"><h2>الإشعارات الجديدة</h2><button id="closeNotifications" type="button" aria-label="إغلاق الإشعارات">×</button></div>
+    <div class="notification-header"><h2 id="notificationsTitle">الإشعارات الجديدة</h2><button id="closeNotifications" type="button" aria-label="إغلاق الإشعارات">×</button></div>
     <div id="notificationsList" class="notifications-list"><p class="notification-empty">جاري تحميل الإشعارات…</p></div>
   </section>
 
