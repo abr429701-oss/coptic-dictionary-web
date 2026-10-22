@@ -5,10 +5,8 @@ const AUDIO_BASE = "https://raw.githubusercontent.com/abr429701-oss/coptic-dicti
 const HUMAN_AUDIO = "audio-human";
 let humanAudioIds = new Set();
 const humanAudioReady = fetch(`${HUMAN_AUDIO}/manifest.json`).then((response) => response.json()).then((ids) => { humanAudioIds = new Set(ids.map(Number)); }).catch(() => {});
-const REGISTER_URL = "https://copticdictionry.neocities.org/login";
 const SHEET_ID = "17n8MgiCIe4xVRXqM7W74zCSeqwo6pX8L-Pj2wSsl0ek";
 const NOTIFICATIONS_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out%3Acsv&sheet=bot&range=B2%3AB`;
-const MAX_FREE_SEARCHES = 2;
 const KEYS = [
   ["ⲁ","ⲃ","ⲅ","ⲇ","ⲉ","ⲋ"], ["ⲍ","ⲏ","ⲑ","ⲓ","ⲕ","ⲗ"], ["ⲙ","ⲛ","ⲝ","ⲟ","ⲡ","ⲣ"],
   ["ⲥ","ⲧ","ⲩ","ⲫ","ⲭ","ⲯ"], ["ⲱ","ϣ","ϥ","ϧ","ϩ","ϫ"], ["ϭ","ϯ","ⳉ","̀"]
@@ -53,26 +51,6 @@ function updateDate() {
   $("date-display").replaceChildren(make("div", { text: weekday }), make("div", { text: coptic }), make("div", { text: gregorian }));
 }
 
-// الحدّ محلي في هذا المتصفح فقط: لا عنوان IP، ولا تسجيل زيارات.
-function searchCount() { return Number(store.get("khmi-search-count", 0)) || 0; }
-function setSearchCount(value) { store.set("khmi-search-count", value); }
-function remainingSearches() { return Math.max(0, MAX_FREE_SEARCHES - searchCount()); }
-function updateQuotaNote() {
-  const remaining = remainingSearches();
-  $("quotaNote").textContent = remaining ? `يتبقى ${remaining} بحث قبل التسجيل في هذا المتصفح.` : "وصلت إلى حدّ البحث المحلي؛ استخدم زر «تسجيل» للمتابعة.";
-}
-function showRegistrationGate() {
-  loader.hidden = true;
-  searchButton.disabled = false;
-  resultsContainer.replaceChildren();
-  message.replaceChildren();
-  const box = make("div", { class: "register-notice" });
-  box.append(make("strong", { text: "للاستمرار في البحث، سجّل الدخول." }), make("br"), make("span", { text: "حدّ البحث محفوظ على هذا المتصفح فقط، ولا نجمع عنوان IP." }), make("br"));
-  const link = make("a", { href: REGISTER_URL, target: "_blank", rel: "noopener noreferrer", text: "فتح صفحة التسجيل" });
-  box.append(link, make("br"), make("button", { class: "more-results-btn", type: "button", text: "أكملت التسجيل — استكمل البحث" }));
-  box.querySelector("button").addEventListener("click", () => { setSearchCount(0); updateQuotaNote(); message.textContent = "تمت إعادة الحدّ محليًا. يمكنك البحث الآن."; box.remove(); });
-  message.append(box);
-}
 function renderSuggestions(query, rows) {
   const unique = new Set();
   const options = [];
@@ -256,8 +234,6 @@ async function performSearch(raw) {
   if (!query) { ++searchSequence; loader.hidden = true; searchButton.disabled = false; message.textContent = "الرجاء إدخال كلمة للبحث!"; resultsContainer.replaceChildren(); input.focus(); return; }
   suggestions.hidden = true;
   const seq = ++searchSequence;
-  if (searchCount() >= MAX_FREE_SEARCHES) { showRegistrationGate(); updateQuotaNote(); return; }
-  setSearchCount(searchCount() + 1); updateQuotaNote();
   currentQuery = query; currentIndex = 0; resultRows = [];
   message.textContent = ""; resultsContainer.replaceChildren(); loader.hidden = false; searchButton.disabled = true; playSfx("clickSound");
   try {
@@ -305,10 +281,6 @@ keyboard.addEventListener("click", (event) => {
 input.addEventListener("input", () => { clearButton.hidden = !input.value; void updateSuggestions(input.value); });
 form.addEventListener("submit", (event) => { event.preventDefault(); void performSearch(input.value); });
 clearButton.addEventListener("click", () => { ++searchSequence; loader.hidden = true; searchButton.disabled = false; input.value = ""; clearButton.hidden = true; suggestions.hidden = true; resultsContainer.replaceChildren(); message.textContent = ""; input.focus(); });
-$("registerButton").addEventListener("click", () => {
-  window.open(REGISTER_URL, "_blank", "noopener,noreferrer");
-  toast("فُتحت صفحة التسجيل. بعد إكمالها، استكمل البحث من رسالة الحدّ المحلي.");
-});
 
 document.addEventListener("click", (event) => { if (!event.target.closest(".search-area")) suggestions.hidden = true; });
 document.addEventListener("keydown", (event) => {
@@ -370,7 +342,7 @@ $("closeNotifications").addEventListener("click", () => toggleNotifications(fals
 
 // ---- بدء التطبيق ----
 (async () => {
-  updateDate(); setInterval(updateDate, 60_000); updateQuotaNote();
+  updateDate(); setInterval(updateDate, 60_000);
   try {
     const manifest = await init(); $("count").textContent = count().toLocaleString("en-US");
     if ("serviceWorker" in navigator && window.__DEV_LIVE__) navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister())).catch(() => {});
