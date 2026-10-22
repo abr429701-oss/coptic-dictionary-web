@@ -49,6 +49,7 @@ function setLang(lang) {
   currentLang = lang;
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  $("wordInput").dir = lang === "ar" ? "rtl" : "ltr";
   $("wordInput").placeholder = t("searchPlaceholder");
   $("searchButtonText").textContent = t("searchButton");
   $("searchHeading").textContent = t("searchHeading");
@@ -83,7 +84,7 @@ function toast(text) {
   Object.assign(node.style, { position: "fixed", insetInline: "0", bottom: "calc(20px + env(safe-area-inset-bottom))", margin: "0 auto", width: "fit-content", maxWidth: "88vw", padding: "10px 18px", borderRadius: "999px", background: "#211d10", border: "1px solid #b99a31", color: "#f3db63", zIndex: 99, fontSize: "14px", boxShadow: "0 8px 20px #0009" });
   document.body.append(node); setTimeout(() => node.remove(), 2200);
 }
-function playSfx(id) { const audio = $(id); if (audio) { audio.currentTime = 0; audio.play().catch(() => {}); } }
+function playSfx(id) { /* أصوات الأزرار معطلة */ }
 function updateDate() {
   const now = new Date();
   const months = ["توت","بابه","هاتور","كيهك","طوبة","أمشير","برمهات","برمودة","بشنس","بؤونة","أبيب","مسرى","النسئ"];
@@ -313,16 +314,48 @@ async function liveSearch(raw) {
 }
 function renderResultList(rows, query) {
   resultsContainer.replaceChildren();
+  const q = query.trim().toLowerCase();
+  const isCopticQuery = /[\u2C80-\u2CFF\u03E2-\u03EF]/.test(q);
   const list = make("div", { class: "result-list" });
-  rows.forEach((item) => {
-    const btn = make("button", { class: "result-item", type: "button" });
-    btn.append(
-      make("span", { class: "ri-coptic cop", text: clean(item.coptic) }),
-      make("span", { class: "ri-meaning", text: item.meaning || "" })
-    );
-    btn.addEventListener("click", () => { playSfx("clickSound"); void showDetail(item, query); });
-    list.append(btn);
-  });
+  if (isCopticQuery) {
+    const seen = new Set();
+    rows.forEach((item) => {
+      const coptic = clean(item.coptic).trim();
+      if (!coptic || seen.has(coptic)) return;
+      seen.add(coptic);
+      const btn = make("button", { class: "result-item", type: "button" });
+      btn.append(make("span", { class: "ri-word cop", text: coptic }));
+      btn.addEventListener("click", () => { void showDetail(item, query); });
+      list.append(btn);
+    });
+  } else {
+    const seen = new Set();
+    const wordItems = [];
+    for (const item of rows) {
+      const meaningWords = parts(item.meaning || "");
+      for (const mw of meaningWords) {
+        const key = mw.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        wordItems.push({ word: mw, item });
+        if (wordItems.length >= 40) break;
+      }
+      if (wordItems.length >= 40) break;
+    }
+    wordItems.sort((a, b) => {
+      const am = a.word.toLowerCase().includes(q) ? 0 : 1;
+      const bm = b.word.toLowerCase().includes(q) ? 0 : 1;
+      return am - bm;
+    });
+    wordItems.forEach(({ word, item }) => {
+      const btn = make("button", { class: "result-item", type: "button" });
+      const span = make("span", { class: "ri-word", text: word });
+      if (word.toLowerCase().includes(q)) span.classList.add("ri-word-match");
+      btn.append(span);
+      btn.addEventListener("click", () => { void showDetail(item, query); });
+      list.append(btn);
+    });
+  }
   resultsContainer.append(list);
 }
 async function showDetail(item, query) {
