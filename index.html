@@ -15,6 +15,7 @@
   <link rel="preload" href="fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/gabriel_arshiagelos.ttf" as="font" type="font/ttf" crossorigin>
+  <script>try{var m=JSON.parse(localStorage.getItem("khmi-theme"));if(m!=="light"&&m!=="dark")m=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=m;}catch(e){}</script>
   <link rel="stylesheet" href="css/app.css?b=__B__">
   <script>window.__MANIFEST__ = null; /*MANIFEST*/</script>
 </head>
@@ -35,6 +36,9 @@
             <button class="lang-btn" data-lang="fr" type="button">FR</button>
             <button class="lang-btn" data-lang="de" type="button">DE</button>
           </div>
+          <button id="themeButton" class="notifications-button theme-button" type="button" aria-label="الوضع الليلي" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path class="moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/><g class="sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></svg>
+          </button>
           <button id="notificationsButton" class="notifications-button" type="button" aria-label="الإشعارات" aria-expanded="false">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg><span id="notificationBadge" class="notification-badge" hidden></span>
           </button>
@@ -47,6 +51,7 @@
             <h1 id="searchHeading" class="search-heading">من كلمةٍ إلى حكاية</h1>
           </div>
         </div>
+        <p id="entryCount" class="hero-sub"></p>
         <div class="search-area">
           <form id="searchForm" class="search-form" role="search" autocomplete="off">
           <label class="sr" for="wordInput">أدخل كلمة للبحث</label>
@@ -61,10 +66,21 @@
           <ul id="suggestions" class="suggestions" role="listbox" aria-label="اقتراحات البحث" hidden></ul>
           <div id="coptic-keyboard" class="coptic-keyboard" hidden aria-label="لوحة المفاتيح القبطية"></div>
         </div>
+        <div id="landing" class="landing">
+          <button id="wotd" class="wotd" type="button" hidden></button>
+          <div id="recent" class="recent" hidden>
+            <span id="recentLabel" class="recent-label"></span>
+            <div id="recentChips" class="recent-chips"></div>
+            <button id="recentClear" class="recent-clear" type="button"></button>
+          </div>
+        </div>
       </section>
 
       <section class="results-area" aria-label="نتائج البحث">
-        <div id="loaderContainer" class="loader-container" hidden><span class="loader" aria-hidden="true"></span><span id="loaderText">جاري البحث…</span></div>
+        <div id="loaderContainer" class="loader-container" hidden>
+          <div class="skeleton-list" aria-hidden="true"><span class="skeleton-row"></span><span class="skeleton-row"></span><span class="skeleton-row"></span><span class="skeleton-row"></span></div>
+          <span id="loaderText">جاري البحث…</span>
+        </div>
         <div id="searchMessage" class="search-message" role="status" aria-live="polite"></div>
         <div id="results-container" class="results-container"></div>
       </section>
@@ -101,6 +117,7 @@
     </div>
   </div>
   <div id="shareStage" class="share-stage" aria-hidden="true"></div>
+  <button id="toTop" class="to-top" type="button" aria-label="العودة للأعلى" hidden>↑</button>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js" defer></script>
   <script type="module" src="js/app.js?b=__B__"></script>

@@ -23,10 +23,10 @@ const store = {
   set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private browsing */ } }
 };
 const I18N = {
-  ar: { searchPlaceholder:"اكتب كلمة للبحث…", searchButton:"ابحث", searchHeading:"من كلمةٍ إلى حكاية", loading:"جاري البحث…", enterWord:"الرجاء إدخال كلمة للبحث!", results:"{n} نتيجة", noResult:"الكلمة غير موجودة حاليًا؛ ستتم الإضافة قريبًا.", searchError:"حدث خطأ في البحث؛ تحقق من الاتصال وحاول مرة أخرى.", detailError:"تعذّر تحميل تفاصيل المدخل.", moreResults:"اضغط لمعرفة المزيد من المعاني　⌄", backToResults:"رجوع إلى النتائج", fieldWord:"الكلمة", fieldMeaning:"المعنى", fieldKind:"النوع", fieldOrigin:"الأصل", audioUnavailable:"لا يتوفر ملف صوت للتنزيل لهذا المدخل.", audioPlayError:"تعذّر تشغيل الملف الصوتي؛ جرّب النطق الآلي.", speechUnavailable:"لا يتوفر نطق لهذا المدخل.", copied:"تم نسخ النص", copyError:"تعذّر النسخ", shareError:"تعذّر إنشاء بطاقة المشاركة؛ حاول مرة أخرى.", shareToolError:"تعذّر تحميل أداة إنشاء الصورة.", learnLink:"🤖 بوت تيليجرام — القاموس القبطي", footerDesc:"القاموس القبطي Ⲭⲏⲙⲓ هو أول قاموس قبطي ناطق على الإنترنت، وسيفيدك كثيراً على تحسين لغتك القبطية، نتمنى لك تجربة فريدة.", downloadApp:"📱 حمّل تطبيق القاموس", qrTitle:"حمّل تطبيق القاموس على الموبايل", qrHint:"امسح الباركود بالكاميرا لتحميل التطبيق", directDownload:"أو اضغط هنا للتحميل المباشر ↓", qrError:"تعذّر جلب رابط التحميل.", qrLoading:"جاري التحميل…", newNotification:"هناك إشعار جديد!", notificationsTitle:"الإشعارات الجديدة", skip:"انتقل إلى البحث", brandCaption:"ⲭⲏⲙⲓ · القاموس القبطي", shareTitle:"القاموس القبطي · ⲭⲏⲙⲓ", dateLocale:"ar-EG" },
-  en: { searchPlaceholder:"Type a word to search…", searchButton:"Search", searchHeading:"From a word to a story", loading:"Searching…", enterWord:"Please enter a word to search!", results:"{n} results", noResult:"This word is not yet available; it will be added soon.", searchError:"Search error; check your connection and try again.", detailError:"Could not load entry details.", moreResults:"Tap for more meanings　⌄", backToResults:"Back to results", fieldWord:"Word", fieldMeaning:"Meaning", fieldKind:"Type", fieldOrigin:"Origin", audioUnavailable:"No audio file available for download for this entry.", audioPlayError:"Could not play the audio; try text-to-speech.", speechUnavailable:"No pronunciation available for this entry.", copied:"Text copied", copyError:"Copy failed", shareError:"Could not create share card; try again.", shareToolError:"Could not load the image tool.", learnLink:"🤖 Telegram Bot — Coptic Dictionary", footerDesc:"Coptic Dictionary Ⲭⲏⲙⲓ is the first spoken Coptic dictionary on the internet. It will help you improve your Coptic. We wish you a unique experience.", downloadApp:"📱 Download the Dictionary App", qrTitle:"Download the Dictionary App", qrHint:"Scan the QR code with your camera to download the app", directDownload:"Or click here for direct download ↓", qrError:"Could not fetch the download link.", qrLoading:"Loading…", newNotification:"New notification!", notificationsTitle:"New notifications", skip:"Skip to search", brandCaption:"ⲭⲏⲙⲓ · Coptic Dictionary", shareTitle:"Coptic Dictionary · ⲭⲏⲙⲓ", dateLocale:"en-GB" },
-  fr: { searchPlaceholder:"Tapez un mot à rechercher…", searchButton:"Rechercher", searchHeading:"D'un mot à une histoire", loading:"Recherche…", enterWord:"Veuillez saisir un mot à rechercher !", results:"{n} résultats", noResult:"Ce mot n'est pas encore disponible ; il sera bientôt ajouté.", searchError:"Erreur de recherche ; vérifiez votre connexion et réessayez.", detailError:"Impossible de charger les détails de l'entrée.", moreResults:"Appuyez pour plus de sens　⌄", backToResults:"Retour aux résultats", fieldWord:"Mot", fieldMeaning:"Sens", fieldKind:"Type", fieldOrigin:"Origine", audioUnavailable:"Aucun fichier audio disponible pour cette entrée.", audioPlayError:"Impossible de lire l'audio ; essayez la synthèse vocale.", speechUnavailable:"Aucune prononciation disponible.", copied:"Texte copié", copyError:"Échec de la copie", shareError:"Impossible de créer la carte de partage ; réessayez.", shareToolError:"Impossible de charger l'outil d'image.", learnLink:"🤖 Bot Telegram — Dictionnaire copte", footerDesc:"Le Dictionnaire copte Ⲭⲏⲙⲓ est le premier dictionnaire copte parlé sur Internet. Il vous aidera à améliorer votre copte. Nous vous souhaitons une expérience unique.", downloadApp:"📱 Télécharger l'application", qrTitle:"Télécharger l'application du dictionnaire", qrHint:"Scannez le code QR avec votre appareil photo pour télécharger l'application", directDownload:"Ou cliquez ici pour le téléchargement direct ↓", qrError:"Impossible de récupérer le lien de téléchargement.", qrLoading:"Chargement…", newNotification:"Nouvelle notification !", notificationsTitle:"Nouvelles notifications", skip:"Aller à la recherche", brandCaption:"ⲭⲏⲙⲓ · Dictionnaire copte", shareTitle:"Dictionnaire copte · ⲭⲏⲙⲓ", dateLocale:"fr-FR" },
-  de: { searchPlaceholder:"Wort zum Suchen eingeben…", searchButton:"Suchen", searchHeading:"Von einem Wort zu einer Geschichte", loading:"Suche…", enterWord:"Bitte geben Sie ein Suchwort ein!", results:"{n} Ergebnisse", noResult:"Dieses Wort ist noch nicht verfügbar; es wird bald hinzugefügt.", searchError:"Suchfehler; Verbindung prüfen und erneut versuchen.", detailError:"Details konnten nicht geladen werden.", moreResults:"Tippen für weitere Bedeutungen　⌄", backToResults:"Zurück zu den Ergebnissen", fieldWord:"Wort", fieldMeaning:"Bedeutung", fieldKind:"Typ", fieldOrigin:"Herkunft", audioUnavailable:"Keine Audiodatei zum Download verfügbar.", audioPlayError:"Audio konnte nicht abgespielt werden; Sprachsynthese versuchen.", speechUnavailable:"Keine Aussprache verfügbar.", copied:"Text kopiert", copyError:"Kopieren fehlgeschlagen", shareError:"Share-Karte konnte nicht erstellt werden.", shareToolError:"Bildtool konnte nicht geladen werden.", learnLink:"🤖 Telegram-Bot — Koptisches Wörterbuch", footerDesc:"Das Koptische Wörterbuch Ⲭⲏⲙⲓ ist das erste gesprochene koptische Wörterbuch im Internet. Es hilft Ihnen, Ihr Koptisch zu verbessern. Wir wünschen Ihnen ein einzigartiges Erlebnis.", downloadApp:"📱 App herunterladen", qrTitle:"Wörterbuch-App herunterladen", qrHint:"Scannen Sie den QR-Code mit der Kamera, um die App herunterzuladen", directDownload:"Oder hier klicken für Direktdownload ↓", qrError:"Download-Link konnte nicht abgerufen werden.", qrLoading:"Laden…", newNotification:"Neue Benachrichtigung!", notificationsTitle:"Neue Benachrichtigungen", skip:"Zur Suche springen", brandCaption:"ⲭⲏⲙⲓ · Koptisches Wörterbuch", shareTitle:"Koptisches Wörterbuch · ⲭⲏⲙⲓ", dateLocale:"de-DE" }
+  ar: { searchPlaceholder:"اكتب كلمة للبحث…", searchButton:"ابحث", searchHeading:"من كلمةٍ إلى حكاية", loading:"جاري البحث…", enterWord:"الرجاء إدخال كلمة للبحث!", results:"{n} نتيجة", noResult:"الكلمة غير موجودة حاليًا؛ ستتم الإضافة قريبًا.", searchError:"حدث خطأ في البحث؛ تحقق من الاتصال وحاول مرة أخرى.", detailError:"تعذّر تحميل تفاصيل المدخل.", moreResults:"اضغط لمعرفة المزيد من المعاني　⌄", backToResults:"رجوع إلى النتائج", fieldWord:"الكلمة", fieldMeaning:"المعنى", fieldKind:"النوع", fieldOrigin:"الأصل", audioUnavailable:"لا يتوفر ملف صوت للتنزيل لهذا المدخل.", audioPlayError:"تعذّر تشغيل الملف الصوتي؛ جرّب النطق الآلي.", speechUnavailable:"لا يتوفر نطق لهذا المدخل.", copied:"تم نسخ النص", copyError:"تعذّر النسخ", shareError:"تعذّر إنشاء بطاقة المشاركة؛ حاول مرة أخرى.", shareToolError:"تعذّر تحميل أداة إنشاء الصورة.", learnLink:"🤖 بوت تيليجرام — القاموس القبطي", footerDesc:"القاموس القبطي Ⲭⲏⲙⲓ هو أول قاموس قبطي ناطق على الإنترنت، وسيفيدك كثيراً على تحسين لغتك القبطية، نتمنى لك تجربة فريدة.", downloadApp:"📱 حمّل تطبيق القاموس", qrTitle:"حمّل تطبيق القاموس على الموبايل", qrHint:"امسح الباركود بالكاميرا لتحميل التطبيق", directDownload:"أو اضغط هنا للتحميل المباشر ↓", qrError:"تعذّر جلب رابط التحميل.", qrLoading:"جاري التحميل…", newNotification:"هناك إشعار جديد!", notificationsTitle:"الإشعارات الجديدة", skip:"انتقل إلى البحث", brandCaption:"ⲭⲏⲙⲓ · القاموس القبطي", shareTitle:"القاموس القبطي · ⲭⲏⲙⲓ", dateLocale:"ar-EG", wotdLabel:"كلمة اليوم", recentLabel:"عمليات البحث الأخيرة", recentClear:"مسح", entriesCount:"{n} مدخل في القاموس", themeDark:"الوضع الليلي", themeLight:"الوضع النهاري", toTop:"العودة للأعلى" },
+  en: { searchPlaceholder:"Type a word to search…", searchButton:"Search", searchHeading:"From a word to a story", loading:"Searching…", enterWord:"Please enter a word to search!", results:"{n} results", noResult:"This word is not yet available; it will be added soon.", searchError:"Search error; check your connection and try again.", detailError:"Could not load entry details.", moreResults:"Tap for more meanings　⌄", backToResults:"Back to results", fieldWord:"Word", fieldMeaning:"Meaning", fieldKind:"Type", fieldOrigin:"Origin", audioUnavailable:"No audio file available for download for this entry.", audioPlayError:"Could not play the audio; try text-to-speech.", speechUnavailable:"No pronunciation available for this entry.", copied:"Text copied", copyError:"Copy failed", shareError:"Could not create share card; try again.", shareToolError:"Could not load the image tool.", learnLink:"🤖 Telegram Bot — Coptic Dictionary", footerDesc:"Coptic Dictionary Ⲭⲏⲙⲓ is the first spoken Coptic dictionary on the internet. It will help you improve your Coptic. We wish you a unique experience.", downloadApp:"📱 Download the Dictionary App", qrTitle:"Download the Dictionary App", qrHint:"Scan the QR code with your camera to download the app", directDownload:"Or click here for direct download ↓", qrError:"Could not fetch the download link.", qrLoading:"Loading…", newNotification:"New notification!", notificationsTitle:"New notifications", skip:"Skip to search", brandCaption:"ⲭⲏⲙⲓ · Coptic Dictionary", shareTitle:"Coptic Dictionary · ⲭⲏⲙⲓ", dateLocale:"en-GB", wotdLabel:"Word of the day", recentLabel:"Recent searches", recentClear:"Clear", entriesCount:"{n} dictionary entries", themeDark:"Dark mode", themeLight:"Light mode", toTop:"Back to top" },
+  fr: { searchPlaceholder:"Tapez un mot à rechercher…", searchButton:"Rechercher", searchHeading:"D'un mot à une histoire", loading:"Recherche…", enterWord:"Veuillez saisir un mot à rechercher !", results:"{n} résultats", noResult:"Ce mot n'est pas encore disponible ; il sera bientôt ajouté.", searchError:"Erreur de recherche ; vérifiez votre connexion et réessayez.", detailError:"Impossible de charger les détails de l'entrée.", moreResults:"Appuyez pour plus de sens　⌄", backToResults:"Retour aux résultats", fieldWord:"Mot", fieldMeaning:"Sens", fieldKind:"Type", fieldOrigin:"Origine", audioUnavailable:"Aucun fichier audio disponible pour cette entrée.", audioPlayError:"Impossible de lire l'audio ; essayez la synthèse vocale.", speechUnavailable:"Aucune prononciation disponible.", copied:"Texte copié", copyError:"Échec de la copie", shareError:"Impossible de créer la carte de partage ; réessayez.", shareToolError:"Impossible de charger l'outil d'image.", learnLink:"🤖 Bot Telegram — Dictionnaire copte", footerDesc:"Le Dictionnaire copte Ⲭⲏⲙⲓ est le premier dictionnaire copte parlé sur Internet. Il vous aidera à améliorer votre copte. Nous vous souhaitons une expérience unique.", downloadApp:"📱 Télécharger l'application", qrTitle:"Télécharger l'application du dictionnaire", qrHint:"Scannez le code QR avec votre appareil photo pour télécharger l'application", directDownload:"Ou cliquez ici pour le téléchargement direct ↓", qrError:"Impossible de récupérer le lien de téléchargement.", qrLoading:"Chargement…", newNotification:"Nouvelle notification !", notificationsTitle:"Nouvelles notifications", skip:"Aller à la recherche", brandCaption:"ⲭⲏⲙⲓ · Dictionnaire copte", shareTitle:"Dictionnaire copte · ⲭⲏⲙⲓ", dateLocale:"fr-FR", wotdLabel:"Mot du jour", recentLabel:"Recherches récentes", recentClear:"Effacer", entriesCount:"{n} entrées dans le dictionnaire", themeDark:"Mode sombre", themeLight:"Mode clair", toTop:"Haut de page" },
+  de: { searchPlaceholder:"Wort zum Suchen eingeben…", searchButton:"Suchen", searchHeading:"Von einem Wort zu einer Geschichte", loading:"Suche…", enterWord:"Bitte geben Sie ein Suchwort ein!", results:"{n} Ergebnisse", noResult:"Dieses Wort ist noch nicht verfügbar; es wird bald hinzugefügt.", searchError:"Suchfehler; Verbindung prüfen und erneut versuchen.", detailError:"Details konnten nicht geladen werden.", moreResults:"Tippen für weitere Bedeutungen　⌄", backToResults:"Zurück zu den Ergebnissen", fieldWord:"Wort", fieldMeaning:"Bedeutung", fieldKind:"Typ", fieldOrigin:"Herkunft", audioUnavailable:"Keine Audiodatei zum Download verfügbar.", audioPlayError:"Audio konnte nicht abgespielt werden; Sprachsynthese versuchen.", speechUnavailable:"Keine Aussprache verfügbar.", copied:"Text kopiert", copyError:"Kopieren fehlgeschlagen", shareError:"Share-Karte konnte nicht erstellt werden.", shareToolError:"Bildtool konnte nicht geladen werden.", learnLink:"🤖 Telegram-Bot — Koptisches Wörterbuch", footerDesc:"Das Koptische Wörterbuch Ⲭⲏⲙⲓ ist das erste gesprochene koptische Wörterbuch im Internet. Es hilft Ihnen, Ihr Koptisch zu verbessern. Wir wünschen Ihnen ein einzigartiges Erlebnis.", downloadApp:"📱 App herunterladen", qrTitle:"Wörterbuch-App herunterladen", qrHint:"Scannen Sie den QR-Code mit der Kamera, um die App herunterzuladen", directDownload:"Oder hier klicken für Direktdownload ↓", qrError:"Download-Link konnte nicht abgerufen werden.", qrLoading:"Laden…", newNotification:"Neue Benachrichtigung!", notificationsTitle:"Neue Benachrichtigungen", skip:"Zur Suche springen", brandCaption:"ⲭⲏⲙⲓ · Koptisches Wörterbuch", shareTitle:"Koptisches Wörterbuch · ⲭⲏⲙⲓ", dateLocale:"de-DE", wotdLabel:"Wort des Tages", recentLabel:"Letzte Suchen", recentClear:"Löschen", entriesCount:"{n} Einträge im Wörterbuch", themeDark:"Dunkelmodus", themeLight:"Hellmodus", toTop:"Nach oben" }
 };
 let currentLang = "ar";
 function t(key, vars) {
@@ -65,6 +65,7 @@ function setLang(lang) {
   $("appDirectLink").textContent = t("directDownload");
   document.title = `ⲤⲞⲠⲦⲒⲤ ⲬⲎⲘⲒ — ${t("brandCaption")}`;
   updateDate();
+  refreshChrome();
 }
 const clean = (s) => String(s ?? "").replaceAll("`", "̀");
 const make = (tag, attrs = {}, ...children) => {
@@ -341,8 +342,9 @@ async function liveSearch(raw) {
   const query = String(raw ?? "").trim();
   // تبديل اللغة أصبح يدويًا فقط من الأزرار أعلى الصفحة.
   suggestions.hidden = true;
-  if (!query) { ++liveSeq; resultsContainer.replaceChildren(); message.textContent = ""; message.classList.remove("error"); loader.hidden = true; searchButton.disabled = false; return; }
+  if (!query) { ++liveSeq; listObserver?.disconnect(); setLanding(true); resultsContainer.replaceChildren(); message.textContent = ""; message.classList.remove("error"); loader.hidden = true; searchButton.disabled = false; return; }
   const seq = ++liveSeq;
+  setLanding(false);
   message.textContent = ""; message.classList.remove("error"); resultsContainer.replaceChildren(); loader.hidden = false; searchButton.disabled = true; playSfx("clickSound");
   try {
     const data = await search(query);
@@ -359,62 +361,165 @@ async function liveSearch(raw) {
     console.error(error); message.textContent = t("searchError"); message.classList.add("error"); playSfx("errorSound");
   }
 }
-function renderResultList(rows, query) {
-  resultsContainer.replaceChildren();
-  const q = query.trim().toLowerCase();
-  const isCopticQuery = /[\u2C80-\u2CFF\u03E2-\u03EF]/.test(q);
-  const list = make("div", { class: "result-list" });
-  const appendCopticItems = () => {
-    const seen = new Set();
+// ---- قائمة النتائج: تُبنى على دفعات ويكتمل تحميلها مع التمرير ----
+const COPTIC_RE = /[Ⲁ-⳿Ϣ-ϯ]/;
+const CHUNK = 60;
+let listObserver = null;
+function resultEntries(rows, query) {
+  const isCopticQuery = COPTIC_RE.test(query.trim().toLowerCase());
+  const copticEntries = () => {
+    const seen = new Set(), out = [];
     for (const item of rows) {
       const coptic = clean(item.coptic).trim();
       if (!coptic || seen.has(coptic)) continue;
       seen.add(coptic);
-      const btn = make("button", { class: "result-item", type: "button" });
-      btn.append(make("span", { class: "ri-word cop", text: coptic }));
-      btn.addEventListener("click", () => { void showDetail(item, query); });
-      list.append(btn);
+      out.push({ item, primary: coptic, secondary: parts(item.meaning || "")[0] || "", copticPrimary: true });
     }
+    return out;
   };
-  if (isCopticQuery) {
-    appendCopticItems();
-  } else {
-    const seen = new Set();
-    const nq = normalize(query);
-    const wordItems = [];
-    for (const item of rows) {
-      const meaningWords = parts(item.meaning || "");
-      for (const mw of meaningWords) {
-        if (!partMatches(mw, query)) continue;
-        const key = normalize(mw);
-        if (seen.has(key)) continue;
-        seen.add(key);
-        wordItems.push({ word: mw, item });
-      }
-    }
-    if (!wordItems.length) {
-      // استعلام لاتيني (إنجليزي/فرنسي/ألماني): المعنى عربي فلا يطابق، اعرض الكلمة القبطية لكل نتيجة.
-      appendCopticItems();
-    } else {
-      wordItems.sort((a, b) => {
-        const ap = normalize(a.word).startsWith(nq) ? 0 : 1;
-        const bp = normalize(b.word).startsWith(nq) ? 0 : 1;
-        if (ap !== bp) return ap - bp;
-        return normalize(a.word).length - normalize(b.word).length || a.word.localeCompare(b.word);
-      });
-      wordItems.forEach(({ word, item }) => {
-        const btn = make("button", { class: "result-item", type: "button" });
-        const span = make("span", { class: "ri-word", text: word });
-        if (normalize(word).startsWith(nq)) span.classList.add("ri-word-match");
-        btn.append(span);
-        btn.addEventListener("click", () => { void showDetail(item, query, word); });
-        list.append(btn);
-      });
+  if (isCopticQuery) return copticEntries();
+  const nq = normalize(query), seen = new Set(), out = [];
+  for (const item of rows) {
+    for (const mw of parts(item.meaning || "")) {
+      if (!partMatches(mw, query)) continue;
+      const key = normalize(mw);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push({ item, word: mw, primary: mw, secondary: clean(item.coptic).trim(), match: normalize(mw).startsWith(nq), copticPrimary: false });
     }
   }
-  resultsContainer.append(list);
+  // استعلام لاتيني (إنجليزي/فرنسي/ألماني): المعنى عربي فلا يطابق، اعرض الكلمة القبطية لكل نتيجة.
+  if (!out.length) return copticEntries();
+  out.sort((a, b) => {
+    if (a.match !== b.match) return a.match ? -1 : 1;
+    return normalize(a.primary).length - normalize(b.primary).length || a.primary.localeCompare(b.primary);
+  });
+  return out;
 }
+function buildResultItem(entry, query, index) {
+  const btn = make("button", { class: "result-item" + (index < 12 ? " stagger" : ""), type: "button" });
+  if (index < 12) btn.style.setProperty("--i", String(index));
+  const main = make("span", { class: "ri-word" + (entry.copticPrimary ? " cop" : ""), text: entry.primary });
+  if (entry.match) main.classList.add("ri-word-match");
+  btn.append(main);
+  if (entry.secondary) btn.append(make("span", { class: "ri-sub" + (entry.copticPrimary ? "" : " cop"), text: entry.secondary }));
+  btn.addEventListener("click", () => { void showDetail(entry.item, query, entry.word); });
+  return btn;
+}
+function renderResultList(rows, query) {
+  listObserver?.disconnect();
+  resultsContainer.replaceChildren();
+  const entries = resultEntries(rows, query);
+  const list = make("div", { class: "result-list" });
+  resultsContainer.append(list);
+  const sentinel = make("div", { class: "list-sentinel", "aria-hidden": "true" });
+  let shown = 0;
+  const more = () => {
+    const end = Math.min(shown + CHUNK, entries.length);
+    const frag = document.createDocumentFragment();
+    for (; shown < end; shown++) frag.append(buildResultItem(entries[shown], query, shown));
+    list.append(frag);
+    if (shown >= entries.length) { listObserver?.disconnect(); sentinel.remove(); return; }
+    // شاشة طويلة: إن بقي الحارس داخل نطاق الرؤية حمّل الدفعة التالية فورًا.
+    if (sentinel.isConnected && sentinel.getBoundingClientRect().top < window.innerHeight + 800) requestAnimationFrame(more);
+  };
+  if (entries.length > CHUNK) resultsContainer.append(sentinel);
+  more();
+  if (shown < entries.length) {
+    if ("IntersectionObserver" in window) {
+      listObserver = new IntersectionObserver((hits) => { if (hits.some((hit) => hit.isIntersecting)) more(); }, { rootMargin: "800px 0px" });
+      listObserver.observe(sentinel);
+    } else while (shown < entries.length) more();
+  }
+}
+
+// ---- الصفحة الرئيسية: كلمة اليوم + آخر عمليات البحث ----
+const RECENT_KEY = "khmi-recent";
+let wotdEntry = null;
+function setLanding(visible) {
+  $("landing").hidden = !visible;
+  if (visible) renderRecent();
+}
+function rememberQuery(raw) {
+  const value = String(raw ?? "").trim();
+  if (!value) return;
+  store.set(RECENT_KEY, [value, ...store.get(RECENT_KEY, []).filter((x) => x !== value)].slice(0, 8));
+}
+function renderRecent() {
+  const list = store.get(RECENT_KEY, []);
+  const box = $("recent");
+  box.hidden = !list.length;
+  if (!list.length) return;
+  $("recentLabel").textContent = t("recentLabel");
+  $("recentClear").textContent = t("recentClear");
+  $("recentChips").replaceChildren(...list.map((q) => {
+    const chip = make("button", { class: "chip" + (COPTIC_RE.test(q) ? " cop" : ""), type: "button", text: q });
+    chip.addEventListener("click", () => { input.value = q; clearButton.hidden = false; void liveSearch(q); });
+    return chip;
+  }));
+}
+$("recentClear").addEventListener("click", () => { store.set(RECENT_KEY, []); renderRecent(); });
+async function loadWordOfDay() {
+  const total = count();
+  if (!total) return null;
+  const seed = Math.floor(Date.now() / 86400000) * 2654435761 % total; // نفس الكلمة طوال اليوم
+  for (let step = 0; step < 40; step++) {
+    const id = (seed + step * 7) % total;
+    const record = await detail(id).catch(() => null);
+    if (!record) continue;
+    const coptic = clean(record.coptic).trim();
+    const meaning = parts(record.meaning || "")[0];
+    if (!coptic || !meaning || coptic.length > 14 || meaning.length > 48) continue;
+    return { id, coptic, meaning, fullMeaning: record.meaning };
+  }
+  return null;
+}
+function renderWordOfDay() {
+  const el = $("wotd");
+  if (!wotdEntry) { el.hidden = true; return; }
+  el.replaceChildren(
+    make("span", { class: "wotd-label", text: t("wotdLabel") }),
+    make("span", { class: "wotd-word cop", text: wotdEntry.coptic }),
+    make("span", { class: "wotd-meaning", text: wotdEntry.meaning }));
+  el.hidden = false;
+}
+$("wotd").addEventListener("click", () => {
+  if (!wotdEntry) return;
+  setLanding(false);
+  void showDetail({ id: wotdEntry.id, coptic: wotdEntry.coptic, meaning: wotdEntry.fullMeaning }, "");
+});
+
+// ---- الوضع الليلي + عناصر الواجهة التي تتبع اللغة ----
+const themeButton = $("themeButton"), toTop = $("toTop");
+function applyTheme(mode, save) {
+  document.documentElement.dataset.theme = mode;
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", mode === "dark" ? "#0f1729" : "#f4ecdc");
+  const label = t(mode === "dark" ? "themeLight" : "themeDark");
+  themeButton.setAttribute("aria-pressed", String(mode === "dark"));
+  themeButton.setAttribute("aria-label", label);
+  themeButton.title = label;
+  if (save) store.set("khmi-theme", mode);
+}
+themeButton.addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark", true));
+function refreshChrome() {
+  applyTheme(document.documentElement.dataset.theme === "dark" ? "dark" : "light", false);
+  toTop.setAttribute("aria-label", t("toTop"));
+  toTop.title = t("toTop");
+  if (count()) $("entryCount").textContent = t("entriesCount", { n: count().toLocaleString(t("dateLocale")) });
+  renderWordOfDay();
+  renderRecent();
+}
+toTop.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+let topTicking = false;
+window.addEventListener("scroll", () => {
+  if (topTicking) return;
+  topTicking = true;
+  requestAnimationFrame(() => { toTop.hidden = window.scrollY < 800; topTicking = false; });
+}, { passive: true });
+
 async function showDetail(item, query, selectedMeaning) {
+  listObserver?.disconnect();
+  rememberQuery(query);
   const seq = liveSeq;
   loader.hidden = false;
   try {
@@ -496,8 +601,8 @@ keyboard.addEventListener("click", (event) => {
 
 let typeTimer = null;
 input.addEventListener("input", () => { clearButton.hidden = !input.value; clearTimeout(typeTimer); typeTimer = setTimeout(() => void liveSearch(input.value), 180); });
-form.addEventListener("submit", (event) => { event.preventDefault(); clearTimeout(typeTimer); void liveSearch(input.value); input.blur(); });
-clearButton.addEventListener("click", () => { ++searchSequence; loader.hidden = true; searchButton.disabled = false; input.value = ""; clearButton.hidden = true; suggestions.hidden = true; resultsContainer.replaceChildren(); message.textContent = ""; input.focus(); });
+form.addEventListener("submit", (event) => { event.preventDefault(); clearTimeout(typeTimer); const submitted = input.value; void liveSearch(submitted).then(() => { if (resultsContainer.querySelector(".result-item")) rememberQuery(submitted); }); input.blur(); });
+clearButton.addEventListener("click", () => { ++searchSequence; loader.hidden = true; searchButton.disabled = false; input.value = ""; clearButton.hidden = true; suggestions.hidden = true; listObserver?.disconnect(); resultsContainer.replaceChildren(); message.textContent = ""; setLanding(true); input.focus(); });
 
 document.addEventListener("click", (event) => { if (!event.target.closest(".search-area")) suggestions.hidden = true; });
 document.addEventListener("keydown", (event) => {
@@ -592,6 +697,7 @@ $("qrModal").addEventListener("click", (e) => { if (e.target === $("qrModal")) $
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("qrModal").hidden = true; });
 (async () => {
   updateDate(); setInterval(updateDate, 60_000);
+  refreshChrome();
   // تبديل اللغة يدويًا فقط من الأزرار أعلى الصفحة (يُحفظ اختيار المستخدم)
   const applyLangActive = () => document.querySelectorAll(".lang-btn").forEach((b) => b.classList.toggle("active", b.dataset.lang === currentLang));
   const savedLang = store.get("khmi-lang", "ar");
@@ -605,7 +711,8 @@ document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("qrModal
     applyLangActive();
   }));
   try {
-    const manifest = await init(); $("count").textContent = count().toLocaleString("en-US");
+    const manifest = await init(); $("count").textContent = count().toLocaleString("en-US"); refreshChrome();
+    loadWordOfDay().then((entry) => { wotdEntry = entry; renderWordOfDay(); }).catch(() => {});
     if ("serviceWorker" in navigator && window.__DEV_LIVE__) navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister())).catch(() => {});
     else if ("serviceWorker" in navigator) navigator.serviceWorker.register(`sw.js?v=${manifest.v}`).catch(() => {});
   } catch (error) { console.error(error); message.textContent = "تعذّر تحميل القاموس؛ تحقق من الاتصال ثم أعد تحميل الصفحة."; message.classList.add("error"); return; }
