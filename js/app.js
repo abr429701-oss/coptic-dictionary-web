@@ -275,7 +275,9 @@ async function shareCard(card, record, query) {
   const appLink = await fetchLatestAppLink();
   if (appLink) {
     const qrBlock = make("div", { class: "share-qr-block" });
-    qrBlock.append(make("p", { class: "share-qr-caption", dir: "ltr", text: "Download ⲤⲞⲠⲦⲒⲤ ⲬⲎⲘⲒ App" }));
+    const caption = make("p", { class: "share-qr-caption", dir: "ltr" });
+    caption.append(document.createTextNode("Download "), make("span", { class: "cop", text: "ⲤⲞⲠⲦⲒⲤ ⲬⲎⲘⲒ" }), document.createTextNode(" App"));
+    qrBlock.append(caption);
     const qr = make("img", { class: "share-qr", alt: "App download QR", width: "180", height: "180" });
     qr.crossOrigin = "anonymous";
     qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(appLink)}`;
