@@ -255,13 +255,35 @@ async function shareCard(card, record, query) {
   const avatar = make("img", { src: "assets/share-abram.png", alt: "" });
   const flag = make("img", { src: "assets/share-egypt.svg", alt: "" });
   avatars.append(avatar, flag);
-  const date = make("div", { class: "share-date", text: `${$("date-display").textContent.replace(/\s+/g, " · ")} · ⲭⲏⲙⲓ` });
+  // العنوان + التاريخ القبطي (اتجاه صحيح غير معكوس) + التاريخ الميلادي أسفل الصور الثلاثة
+  const dateDivs = $("date-display").querySelectorAll("div");
+  const copticDate = dateDivs[1]?.textContent?.trim() || "";
+  const gregorianDate = dateDivs[2]?.textContent?.trim() || "";
+  const shareHead = make("div", { class: "share-head" });
+  shareHead.append(make("h2", { class: "share-title cop", text: "ⲤⲞⲠⲦⲒⲤ ⲬⲎⲘⲒ" }));
+  const datesLine = make("div", { class: "share-dates" });
+  if (copticDate) datesLine.append(make("span", { dir: "ltr", class: "share-date-coptic cop", text: copticDate }));
+  if (copticDate && gregorianDate) datesLine.append(document.createTextNode(" · "));
+  if (gregorianDate) datesLine.append(make("span", { class: "share-date-greg", text: gregorianDate }));
+  shareHead.append(datesLine);
   const photo = make("img", { class: "share-photo", src: "assets/share-photo.jpg", alt: "" });
-  const exportNode = make("div", { class: "share-export" }, avatars, make("h2", { class: "share-title", text: t("shareTitle") }), info, date, photo);
+  const children = [avatars, shareHead, info, photo];
+  // باركود تحميل التطبيق (نفس نظام نافذة التحميل) أسفل البطاقة فوقه نص التحميل
+  const appLink = await fetchLatestAppLink();
+  if (appLink) {
+    const qrBlock = make("div", { class: "share-qr-block" });
+    qrBlock.append(make("p", { class: "share-qr-caption", dir: "ltr", text: "Download ⲤⲞⲠⲦⲒⲤ ⲬⲎⲘⲒ App" }));
+    const qr = make("img", { class: "share-qr", alt: "App download QR", width: "180", height: "180" });
+    qr.crossOrigin = "anonymous";
+    qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(appLink)}`;
+    qrBlock.append(qr);
+    children.push(qrBlock);
+  }
+  const exportNode = make("div", { class: "share-export" }, ...children);
   stage.replaceChildren(exportNode);
   try {
     await Promise.all([...exportNode.querySelectorAll("img")].map((img) => img.decode().catch(() => {})));
-    const canvas = await window.html2canvas(exportNode, { scale: 2, backgroundColor: "#15130e", useCORS: true, logging: false });
+    const canvas = await window.html2canvas(exportNode, { scale: 2, backgroundColor: "#f4ecdc", useCORS: true, logging: false });
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
     if (!blob) throw new Error("image export failed");
     const filename = `${safeFilename(query)}-${safeFilename(record.coptic)}.png`;
@@ -316,7 +338,7 @@ async function createResultCard(item, query, index) {
 let liveSeq = 0;
 async function liveSearch(raw) {
   const query = String(raw ?? "").trim();
-  setLang(detectLang(query));
+  // تبديل اللغة أصبح يدويًا فقط من الأزرار أعلى الصفحة.
   suggestions.hidden = true;
   if (!query) { ++liveSeq; resultsContainer.replaceChildren(); message.textContent = ""; message.classList.remove("error"); loader.hidden = true; searchButton.disabled = false; return; }
   const seq = ++liveSeq;
@@ -416,7 +438,7 @@ async function displayCurrentResult() {
 }
 async function performSearch(raw) {
   const query = String(raw ?? "").trim();
-  setLang(detectLang(query));
+  // تبديل اللغة أصبح يدويًا فقط من الأزرار أعلى الصفحة.
   if (!query) { ++searchSequence; loader.hidden = true; searchButton.disabled = false; message.textContent = t("enterWord"); resultsContainer.replaceChildren(); input.focus(); return; }
   suggestions.hidden = true;
   const seq = ++searchSequence;
@@ -563,6 +585,18 @@ $("qrModal").addEventListener("click", (e) => { if (e.target === $("qrModal")) $
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("qrModal").hidden = true; });
 (async () => {
   updateDate(); setInterval(updateDate, 60_000);
+  // تبديل اللغة يدويًا فقط من الأزرار أعلى الصفحة (يُحفظ اختيار المستخدم)
+  const applyLangActive = () => document.querySelectorAll(".lang-btn").forEach((b) => b.classList.toggle("active", b.dataset.lang === currentLang));
+  const savedLang = store.get("khmi-lang", "ar");
+  if (I18N[savedLang]) setLang(savedLang);
+  applyLangActive();
+  document.querySelectorAll(".lang-btn").forEach((btn) => btn.addEventListener("click", () => {
+    const lang = btn.dataset.lang;
+    if (!I18N[lang] || lang === currentLang) return;
+    store.set("khmi-lang", lang);
+    setLang(lang);
+    applyLangActive();
+  }));
   try {
     const manifest = await init(); $("count").textContent = count().toLocaleString("en-US");
     if ("serviceWorker" in navigator && window.__DEV_LIVE__) navigator.serviceWorker.getRegistrations().then((registrations) => registrations.forEach((registration) => registration.unregister())).catch(() => {});
