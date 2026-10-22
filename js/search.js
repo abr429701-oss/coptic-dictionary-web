@@ -1,7 +1,6 @@
 // عميل البحث: لا يحمّل القاموس كله، بل ملف الفهرس الصغير الذي يخص ما تكتبه فقط.
 import { words, parts, pickKey, shardKey } from "./norm.js";
 
-const MAX_RESULTS = 60;
 const shardCache = new Map();   // مفتاح الملف -> Promise
 const detailCache = new Map();  // رقم المجموعة -> Promise
 let manifest = null;
@@ -94,7 +93,7 @@ export async function search(query) {
   rows.sort((a, b) => a.score - b.score || a.rec[0].length - b.rec[0].length || a.id - b.id);
   return {
     total: rows.length,
-    results: rows.slice(0, MAX_RESULTS).map(({ id, rec }) => ({ id, coptic: rec[0], meaning: rec[1] })),
+    results: rows.map(({ id, rec }) => ({ id, coptic: rec[0], meaning: rec[1] })),
   };
 }
 

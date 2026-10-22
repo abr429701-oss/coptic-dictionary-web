@@ -390,9 +390,7 @@ function renderResultList(rows, query) {
         if (seen.has(key)) continue;
         seen.add(key);
         wordItems.push({ word: mw, item });
-        if (wordItems.length >= 60) break;
       }
-      if (wordItems.length >= 60) break;
     }
     if (!wordItems.length) {
       // استعلام لاتيني (إنجليزي/فرنسي/ألماني): المعنى عربي فلا يطابق، اعرض الكلمة القبطية لكل نتيجة.
