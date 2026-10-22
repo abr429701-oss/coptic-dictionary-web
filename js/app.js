@@ -1,5 +1,5 @@
 import { init, search, detail, count, matchParts } from "./search.js?b=__B__";
-import { parts } from "./norm.js?b=__B__";
+import { parts, normalize, words } from "./norm.js?b=__B__";
 import { spokenText } from "./speech.js?b=__B__";
 
 const AUDIO_BASE = "https://raw.githubusercontent.com/abr429701-oss/coptic-dictionary-bot/audio";
@@ -99,6 +99,13 @@ function updateDate() {
   $("date-display").replaceChildren(make("div", { text: weekday }), make("div", { text: coptic }), make("div", { text: gregorian }));
 }
 
+// يطابق جزءًا من المعنى مع الاستعلام: كل كلمة في الاستعلام موجودة في الجزء (آخر كلمة تطابق بادئة فقط).
+function partMatches(part, query) {
+  const needles = words(query);
+  if (!needles.length) return true;
+  const tokens = words(part);
+  return needles.every((n, i) => tokens.some((t) => t === n || (i === needles.length - 1 && t.startsWith(n))));
+}
 function renderSuggestions(query, rows) {
   const q = query.trim().toLowerCase();
   const isCopticQuery = /[\u2C80-\u2CFF\u03E2-\u03EF]/.test(q);
@@ -110,9 +117,9 @@ function renderSuggestions(query, rows) {
     const meaningWords = parts(row.meaning || "");
     if (!isCopticQuery && meaningWords.length > 0) {
       for (const mw of meaningWords) {
-        const key = mw.toLowerCase();
+        if (q && !partMatches(mw, query)) continue;
+        const key = normalize(mw);
         if (seen.has(key)) continue;
-        if (q && !key.includes(q)) continue;
         seen.add(key);
         options.push({ word: mw, coptic });
         if (options.length >= 7) break;
@@ -146,9 +153,12 @@ async function updateSuggestions(query) {
 }
 function renderMeaning(value, query) {
   const wrap = make("div", { class: "meaning-list" });
-  const matchedParts = matchParts(value || "", query);
-  if (!matchedParts.length) { wrap.textContent = value || "—"; return wrap; }
-  matchedParts.forEach((part) => {
+  const all = matchParts(value || "", query);
+  if (!all.length) { wrap.textContent = value || "—"; return wrap; }
+  // اعرض فقط المعنى المطابق لطلب المستخدم؛ إن لم يوجد مطابق مباشر اعرض كل المعاني احتياطًا.
+  const matched = all.filter((p) => p.matched);
+  const list = matched.length ? matched : all;
+  list.forEach((part) => {
     const line = make("div", { class: "meaning-item" });
     line.append(part.matched ? make("mark", { text: part.text }) : document.createTextNode(part.text));
     wrap.append(line);
@@ -273,9 +283,25 @@ async function createResultCard(item, query, index) {
   const card = make("article", { class: "result-card" });
   const share = make("button", { class: "share-button", type: "button", title: "مشاركة بطاقة صورة", "aria-label": "مشاركة بطاقة صورة", text: "↗" });
   share.addEventListener("click", () => void shareCard(card, record, query)); card.append(share);
+
+  // ترويسة البطاقة: الكلمة القبطية كبيرة + النطق + شارات النوع والأصل
+  const header = make("div", { class: "card-header" });
+  header.append(make("h2", { class: "card-coptic cop", text: clean(record.coptic) || "—" }));
+  const phonetic = clean(record.pronunciation || record.phonetic || "");
+  if (phonetic) header.append(make("div", { class: "card-phonetic", text: phonetic }));
+  const reference = Array.isArray(record.referenceMatches) ? record.referenceMatches[0] : null;
+  const kind = reference?.kind || record.kind;
+  const origin = reference?.origin || record.origin;
+  if (kind || origin) {
+    const badges = make("div", { class: "card-badges" });
+    if (kind) badges.append(make("span", { class: "badge badge-kind", text: kind }));
+    if (origin) badges.append(make("span", { class: "badge badge-origin", text: origin }));
+    header.append(badges);
+  }
+  card.append(header);
+
   const info = make("div", { class: "info-section" });
-  info.append(cardLine(t("fieldWord"), clean(record.coptic), "coptic-word cop"));
-  const meaning = make("div", { class: "result-line" });
+  const meaning = make("div", { class: "result-line meaning-line" });
   meaning.append(make("strong", { text: `${t("fieldMeaning")}:` }));
   const meaningContent = make("span"); meaningContent.append(renderMeaning(record.meaning || item.meaning, query));
   if (!/[\u0600-\u06ff]/u.test(record.meaning || item.meaning || "")) {
@@ -284,8 +310,6 @@ async function createResultCard(item, query, index) {
     meaningContent.append(copy);
   }
   meaning.append(meaningContent); info.append(meaning);
-  const reference = Array.isArray(record.referenceMatches) ? record.referenceMatches[0] : null;
-  info.append(cardLine(t("fieldKind"), reference?.kind || record.kind), cardLine(t("fieldOrigin"), reference?.origin || record.origin));
   info.append(buildAudioPlayer(record, query)); card.append(info);
   return card;
 }
@@ -330,11 +354,13 @@ function renderResultList(rows, query) {
     });
   } else {
     const seen = new Set();
+    const nq = normalize(query);
     const wordItems = [];
     for (const item of rows) {
       const meaningWords = parts(item.meaning || "");
       for (const mw of meaningWords) {
-        const key = mw.toLowerCase();
+        if (!partMatches(mw, query)) continue; // فقط المعاني المطابقة (بادئة الكلمة المكتوبة)
+        const key = normalize(mw);
         if (seen.has(key)) continue;
         seen.add(key);
         wordItems.push({ word: mw, item });
@@ -343,14 +369,15 @@ function renderResultList(rows, query) {
       if (wordItems.length >= 40) break;
     }
     wordItems.sort((a, b) => {
-      const am = a.word.toLowerCase().includes(q) ? 0 : 1;
-      const bm = b.word.toLowerCase().includes(q) ? 0 : 1;
-      return am - bm;
+      const ap = normalize(a.word).startsWith(nq) ? 0 : 1; // الكلمات التي تبدأ بالاستعلام أولًا
+      const bp = normalize(b.word).startsWith(nq) ? 0 : 1;
+      if (ap !== bp) return ap - bp;
+      return normalize(a.word).length - normalize(b.word).length || a.word.localeCompare(b.word);
     });
     wordItems.forEach(({ word, item }) => {
       const btn = make("button", { class: "result-item", type: "button" });
       const span = make("span", { class: "ri-word", text: word });
-      if (word.toLowerCase().includes(q)) span.classList.add("ri-word-match");
+      if (normalize(word).startsWith(nq)) span.classList.add("ri-word-match");
       btn.append(span);
       btn.addEventListener("click", () => { void showDetail(item, query); });
       list.append(btn);
