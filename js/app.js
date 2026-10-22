@@ -21,10 +21,10 @@ const store = {
   set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* private browsing */ } }
 };
 const I18N = {
-  ar: { searchPlaceholder:"اكتب كلمة للبحث…", searchButton:"ابحث", searchHeading:"من كلمةٍ إلى حكاية", loading:"جاري البحث…", enterWord:"الرجاء إدخال كلمة للبحث!", results:"{n} نتيجة", noResult:"الكلمة غير موجودة حاليًا؛ ستتم الإضافة قريبًا.", searchError:"حدث خطأ في البحث؛ تحقق من الاتصال وحاول مرة أخرى.", detailError:"تعذّر تحميل تفاصيل المدخل.", moreResults:"اضغط لمعرفة المزيد من المعاني　⌄", fieldWord:"الكلمة", fieldMeaning:"المعنى", fieldKind:"النوع", fieldOrigin:"الأصل", audioUnavailable:"لا يتوفر ملف صوت للتنزيل لهذا المدخل.", audioPlayError:"تعذّر تشغيل الملف الصوتي؛ جرّب النطق الآلي.", speechUnavailable:"لا يتوفر نطق لهذا المدخل.", copied:"تم نسخ النص", copyError:"تعذّر النسخ", shareError:"تعذّر إنشاء بطاقة المشاركة؛ حاول مرة أخرى.", shareToolError:"تعذّر تحميل أداة إنشاء الصورة.", learnLink:"ابدأ تعلّم اللغة القبطية", newNotification:"هناك إشعار جديد!", notificationsTitle:"الإشعارات الجديدة", skip:"انتقل إلى البحث", brandCaption:"ⲭⲏⲙⲓ · القاموس القبطي", shareTitle:"القاموس القبطي · ⲭⲏⲙⲓ", dateLocale:"ar-EG" },
-  en: { searchPlaceholder:"Type a word to search…", searchButton:"Search", searchHeading:"From a word to a story", loading:"Searching…", enterWord:"Please enter a word to search!", results:"{n} results", noResult:"This word is not yet available; it will be added soon.", searchError:"Search error; check your connection and try again.", detailError:"Could not load entry details.", moreResults:"Tap for more meanings　⌄", fieldWord:"Word", fieldMeaning:"Meaning", fieldKind:"Type", fieldOrigin:"Origin", audioUnavailable:"No audio file available for download for this entry.", audioPlayError:"Could not play the audio; try text-to-speech.", speechUnavailable:"No pronunciation available for this entry.", copied:"Text copied", copyError:"Copy failed", shareError:"Could not create share card; try again.", shareToolError:"Could not load the image tool.", learnLink:"Start learning Coptic", newNotification:"New notification!", notificationsTitle:"New notifications", skip:"Skip to search", brandCaption:"ⲭⲏⲙⲓ · Coptic Dictionary", shareTitle:"Coptic Dictionary · ⲭⲏⲙⲓ", dateLocale:"en-GB" },
-  fr: { searchPlaceholder:"Tapez un mot à rechercher…", searchButton:"Rechercher", searchHeading:"D'un mot à une histoire", loading:"Recherche…", enterWord:"Veuillez saisir un mot à rechercher !", results:"{n} résultats", noResult:"Ce mot n'est pas encore disponible ; il sera bientôt ajouté.", searchError:"Erreur de recherche ; vérifiez votre connexion et réessayez.", detailError:"Impossible de charger les détails de l'entrée.", moreResults:"Appuyez pour plus de sens　⌄", fieldWord:"Mot", fieldMeaning:"Sens", fieldKind:"Type", fieldOrigin:"Origine", audioUnavailable:"Aucun fichier audio disponible pour cette entrée.", audioPlayError:"Impossible de lire l'audio ; essayez la synthèse vocale.", speechUnavailable:"Aucune prononciation disponible.", copied:"Texte copié", copyError:"Échec de la copie", shareError:"Impossible de créer la carte de partage ; réessayez.", shareToolError:"Impossible de charger l'outil d'image.", learnLink:"Commencez à apprendre le copte", newNotification:"Nouvelle notification !", notificationsTitle:"Nouvelles notifications", skip:"Aller à la recherche", brandCaption:"ⲭⲏⲙⲓ · Dictionnaire copte", shareTitle:"Dictionnaire copte · ⲭⲏⲙⲓ", dateLocale:"fr-FR" },
-  de: { searchPlaceholder:"Wort zum Suchen eingeben…", searchButton:"Suchen", searchHeading:"Von einem Wort zu einer Geschichte", loading:"Suche…", enterWord:"Bitte geben Sie ein Suchwort ein!", results:"{n} Ergebnisse", noResult:"Dieses Wort ist noch nicht verfügbar; es wird bald hinzugefügt.", searchError:"Suchfehler; Verbindung prüfen und erneut versuchen.", detailError:"Details konnten nicht geladen werden.", moreResults:"Tippen für weitere Bedeutungen　⌄", fieldWord:"Wort", fieldMeaning:"Bedeutung", fieldKind:"Typ", fieldOrigin:"Herkunft", audioUnavailable:"Keine Audiodatei zum Download verfügbar.", audioPlayError:"Audio konnte nicht abgespielt werden; Sprachsynthese versuchen.", speechUnavailable:"Keine Aussprache verfügbar.", copied:"Text kopiert", copyError:"Kopieren fehlgeschlagen", shareError:"Share-Karte konnte nicht erstellt werden.", shareToolError:"Bildtool konnte nicht geladen werden.", learnLink:"Koptisch lernen beginnen", newNotification:"Neue Benachrichtigung!", notificationsTitle:"Neue Benachrichtigungen", skip:"Zur Suche springen", brandCaption:"ⲭⲏⲙⲓ · Koptisches Wörterbuch", shareTitle:"Koptisches Wörterbuch · ⲭⲏⲙⲓ", dateLocale:"de-DE" }
+  ar: { searchPlaceholder:"اكتب كلمة للبحث…", searchButton:"ابحث", searchHeading:"من كلمةٍ إلى حكاية", loading:"جاري البحث…", enterWord:"الرجاء إدخال كلمة للبحث!", results:"{n} نتيجة", noResult:"الكلمة غير موجودة حاليًا؛ ستتم الإضافة قريبًا.", searchError:"حدث خطأ في البحث؛ تحقق من الاتصال وحاول مرة أخرى.", detailError:"تعذّر تحميل تفاصيل المدخل.", moreResults:"اضغط لمعرفة المزيد من المعاني　⌄", backToResults:"رجوع إلى النتائج", fieldWord:"الكلمة", fieldMeaning:"المعنى", fieldKind:"النوع", fieldOrigin:"الأصل", audioUnavailable:"لا يتوفر ملف صوت للتنزيل لهذا المدخل.", audioPlayError:"تعذّر تشغيل الملف الصوتي؛ جرّب النطق الآلي.", speechUnavailable:"لا يتوفر نطق لهذا المدخل.", copied:"تم نسخ النص", copyError:"تعذّر النسخ", shareError:"تعذّر إنشاء بطاقة المشاركة؛ حاول مرة أخرى.", shareToolError:"تعذّر تحميل أداة إنشاء الصورة.", learnLink:"ابدأ تعلّم اللغة القبطية", newNotification:"هناك إشعار جديد!", notificationsTitle:"الإشعارات الجديدة", skip:"انتقل إلى البحث", brandCaption:"ⲭⲏⲙⲓ · القاموس القبطي", shareTitle:"القاموس القبطي · ⲭⲏⲙⲓ", dateLocale:"ar-EG" },
+  en: { searchPlaceholder:"Type a word to search…", searchButton:"Search", searchHeading:"From a word to a story", loading:"Searching…", enterWord:"Please enter a word to search!", results:"{n} results", noResult:"This word is not yet available; it will be added soon.", searchError:"Search error; check your connection and try again.", detailError:"Could not load entry details.", moreResults:"Tap for more meanings　⌄", backToResults:"Back to results", fieldWord:"Word", fieldMeaning:"Meaning", fieldKind:"Type", fieldOrigin:"Origin", audioUnavailable:"No audio file available for download for this entry.", audioPlayError:"Could not play the audio; try text-to-speech.", speechUnavailable:"No pronunciation available for this entry.", copied:"Text copied", copyError:"Copy failed", shareError:"Could not create share card; try again.", shareToolError:"Could not load the image tool.", learnLink:"Start learning Coptic", newNotification:"New notification!", notificationsTitle:"New notifications", skip:"Skip to search", brandCaption:"ⲭⲏⲙⲓ · Coptic Dictionary", shareTitle:"Coptic Dictionary · ⲭⲏⲙⲓ", dateLocale:"en-GB" },
+  fr: { searchPlaceholder:"Tapez un mot à rechercher…", searchButton:"Rechercher", searchHeading:"D'un mot à une histoire", loading:"Recherche…", enterWord:"Veuillez saisir un mot à rechercher !", results:"{n} résultats", noResult:"Ce mot n'est pas encore disponible ; il sera bientôt ajouté.", searchError:"Erreur de recherche ; vérifiez votre connexion et réessayez.", detailError:"Impossible de charger les détails de l'entrée.", moreResults:"Appuyez pour plus de sens　⌄", backToResults:"Retour aux résultats", fieldWord:"Mot", fieldMeaning:"Sens", fieldKind:"Type", fieldOrigin:"Origine", audioUnavailable:"Aucun fichier audio disponible pour cette entrée.", audioPlayError:"Impossible de lire l'audio ; essayez la synthèse vocale.", speechUnavailable:"Aucune prononciation disponible.", copied:"Texte copié", copyError:"Échec de la copie", shareError:"Impossible de créer la carte de partage ; réessayez.", shareToolError:"Impossible de charger l'outil d'image.", learnLink:"Commencez à apprendre le copte", newNotification:"Nouvelle notification !", notificationsTitle:"Nouvelles notifications", skip:"Aller à la recherche", brandCaption:"ⲭⲏⲙⲓ · Dictionnaire copte", shareTitle:"Dictionnaire copte · ⲭⲏⲙⲓ", dateLocale:"fr-FR" },
+  de: { searchPlaceholder:"Wort zum Suchen eingeben…", searchButton:"Suchen", searchHeading:"Von einem Wort zu einer Geschichte", loading:"Suche…", enterWord:"Bitte geben Sie ein Suchwort ein!", results:"{n} Ergebnisse", noResult:"Dieses Wort ist noch nicht verfügbar; es wird bald hinzugefügt.", searchError:"Suchfehler; Verbindung prüfen und erneut versuchen.", detailError:"Details konnten nicht geladen werden.", moreResults:"Tippen für weitere Bedeutungen　⌄", backToResults:"Zurück zu den Ergebnissen", fieldWord:"Wort", fieldMeaning:"Bedeutung", fieldKind:"Typ", fieldOrigin:"Herkunft", audioUnavailable:"Keine Audiodatei zum Download verfügbar.", audioPlayError:"Audio konnte nicht abgespielt werden; Sprachsynthese versuchen.", speechUnavailable:"Keine Aussprache verfügbar.", copied:"Text kopiert", copyError:"Kopieren fehlgeschlagen", shareError:"Share-Karte konnte nicht erstellt werden.", shareToolError:"Bildtool konnte nicht geladen werden.", learnLink:"Koptisch lernen beginnen", newNotification:"Neue Benachrichtigung!", notificationsTitle:"Neue Benachrichtigungen", skip:"Zur Suche springen", brandCaption:"ⲭⲏⲙⲓ · Koptisches Wörterbuch", shareTitle:"Koptisches Wörterbuch · ⲭⲏⲙⲓ", dateLocale:"de-DE" }
 };
 let currentLang = "ar";
 function t(key, vars) {
@@ -281,6 +281,56 @@ async function createResultCard(item, query, index) {
   info.append(buildAudioPlayer(record, query)); card.append(info);
   return card;
 }
+let liveSeq = 0;
+async function liveSearch(raw) {
+  const query = String(raw ?? "").trim();
+  setLang(detectLang(query));
+  suggestions.hidden = true;
+  if (!query) { ++liveSeq; resultsContainer.replaceChildren(); message.textContent = ""; message.classList.remove("error"); loader.hidden = true; searchButton.disabled = false; return; }
+  const seq = ++liveSeq;
+  message.textContent = ""; message.classList.remove("error"); resultsContainer.replaceChildren(); loader.hidden = false; searchButton.disabled = true; playSfx("clickSound");
+  try {
+    const data = await search(query);
+    if (seq !== liveSeq) return;
+    loader.hidden = true; searchButton.disabled = false;
+    if (!data.results.length) { message.textContent = t("noResult"); message.classList.add("error"); playSfx("errorSound"); return; }
+    message.textContent = t("results", { n: data.total.toLocaleString(t("dateLocale")) });
+    renderResultList(data.results, query);
+    playSfx("successSound");
+    const params = new URLSearchParams(location.search); params.set("q", query); params.delete("w"); history.replaceState({}, "", `${location.pathname}?${params}`);
+  } catch (error) {
+    if (seq !== liveSeq) return;
+    loader.hidden = true; searchButton.disabled = false;
+    console.error(error); message.textContent = t("searchError"); message.classList.add("error"); playSfx("errorSound");
+  }
+}
+function renderResultList(rows, query) {
+  resultsContainer.replaceChildren();
+  const list = make("div", { class: "result-list" });
+  rows.forEach((item) => {
+    const btn = make("button", { class: "result-item", type: "button" });
+    btn.append(
+      make("span", { class: "ri-coptic cop", text: clean(item.coptic) }),
+      make("span", { class: "ri-meaning", text: item.meaning || "" })
+    );
+    btn.addEventListener("click", () => { playSfx("clickSound"); void showDetail(item, query); });
+    list.append(btn);
+  });
+  resultsContainer.append(list);
+}
+async function showDetail(item, query) {
+  const seq = liveSeq;
+  loader.hidden = false;
+  try {
+    const card = await createResultCard(item, query, 0);
+    if (seq !== liveSeq) return;
+    const back = make("button", { class: "more-results-btn back-btn", type: "button", text: "← " + t("backToResults") });
+    back.addEventListener("click", () => void liveSearch(query));
+    resultsContainer.replaceChildren(back, card);
+    resultsContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) { console.error(error); message.textContent = t("detailError"); }
+  finally { loader.hidden = true; }
+}
 let resultRows = [], currentIndex = 0, currentQuery = "", searchSequence = 0;
 async function displayCurrentResult() {
   const seq = searchSequence;
@@ -348,8 +398,9 @@ keyboard.addEventListener("click", (event) => {
   input.dispatchEvent(new Event("input", { bubbles: true })); input.focus();
 });
 
-input.addEventListener("input", () => { clearButton.hidden = !input.value; void updateSuggestions(input.value); });
-form.addEventListener("submit", (event) => { event.preventDefault(); void performSearch(input.value); });
+let typeTimer = null;
+input.addEventListener("input", () => { clearButton.hidden = !input.value; clearTimeout(typeTimer); typeTimer = setTimeout(() => void liveSearch(input.value), 180); });
+form.addEventListener("submit", (event) => { event.preventDefault(); clearTimeout(typeTimer); void liveSearch(input.value); input.blur(); });
 clearButton.addEventListener("click", () => { ++searchSequence; loader.hidden = true; searchButton.disabled = false; input.value = ""; clearButton.hidden = true; suggestions.hidden = true; resultsContainer.replaceChildren(); message.textContent = ""; input.focus(); });
 
 document.addEventListener("click", (event) => { if (!event.target.closest(".search-area")) suggestions.hidden = true; });
@@ -420,5 +471,5 @@ $("closeNotifications").addEventListener("click", () => toggleNotifications(fals
   } catch (error) { console.error(error); message.textContent = "تعذّر تحميل القاموس؛ تحقق من الاتصال ثم أعد تحميل الصفحة."; message.classList.add("error"); return; }
   await loadNotifications(); setInterval(loadNotifications, 60_000);
   const params = new URLSearchParams(location.search); const query = params.get("q");
-  if (query) { input.value = query; clearButton.hidden = false; await performSearch(query); }
+  if (query) { input.value = query; clearButton.hidden = false; await liveSearch(query); }
 })();
