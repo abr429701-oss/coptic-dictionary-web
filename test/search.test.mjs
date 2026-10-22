@@ -27,7 +27,7 @@ test("عدد المداخل", () => assert.ok(count() > 10000));
 test("بحث بالقبطية: ⲁⲛⲁⲩ", async () => {
   const { results } = await search("ⲁⲛⲁⲩ");
   assert.ok(results.length > 0);
-  assert.equal(results[0].coptic.replaceAll("`", ""), "ⲁⲛⲁⲩ");
+  assert.equal(results[0].coptic.replace(/[`\u0300-\u036f]/g, ""), "ⲁⲛⲁⲩ");
 });
 
 test("بحث بالعربية مع ال التعريف: الماء = ماء", async () => {
