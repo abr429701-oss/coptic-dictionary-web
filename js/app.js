@@ -68,6 +68,49 @@ function setLang(lang) {
   refreshChrome();
 }
 const clean = (s) => String(s ?? "").replaceAll("`", "̀");
+// المعنى باللغة الحالية للواجهة (يوجد حقول مترجمة: english / translation_en / translation_fr / translation_de)
+function meaningFor(r) {
+  if (!r) return "";
+  if (currentLang === "en") return r.english || r.translation_en || r.meaning || "";
+  if (currentLang === "fr") return r.translation_fr || r.english || r.translation_en || r.meaning || "";
+  if (currentLang === "de") return r.translation_de || r.english || r.translation_en || r.meaning || "";
+  return r.meaning || "";
+}
+const ORIGIN_MAP = {
+  "قبطي": { en: "Coptic", fr: "copte", de: "Koptisch" }, "قبطية": { en: "Coptic", fr: "copte", de: "Koptisch" },
+  "يوناني": { en: "Greek", fr: "grec", de: "Griechisch" }, "يونانية": { en: "Greek", fr: "grec", de: "Griechisch" },
+  "عبري": { en: "Hebrew", fr: "hébreu", de: "Hebräisch" }, "لاتيني": { en: "Latin", fr: "latin", de: "Latein" },
+  "آرامي": { en: "Aramaic", fr: "araméen", de: "Aramäisch" }, "سرياني": { en: "Syriac", fr: "syriaque", de: "Syrisch" }
+};
+function localizeOrigin(o) {
+  const v = String(o || "").trim();
+  if (!v || currentLang === "ar") return v;
+  return ORIGIN_MAP[v]?.[currentLang] || v;
+}
+const KIND_MAP = {
+  "اسم مذكر": { en: "noun (m.)", fr: "nom (m.)", de: "Substantiv (m.)" },
+  "اسم مؤنث": { en: "noun (f.)", fr: "nom (f.)", de: "Substantiv (f.)" },
+  "اسم مذكر ومؤنث": { en: "noun (m./f.)", fr: "nom (m./f.)", de: "Substantiv (m./w.)" },
+  "اسم جمع": { en: "plural noun", fr: "nom pluriel", de: "Plural" },
+  "اسم": { en: "noun", fr: "nom", de: "Substantiv" },
+  "صفة": { en: "adjective", fr: "adjectif", de: "Adjektiv" },
+  "ظرف": { en: "adverb", fr: "adverbe", de: "Adverb" },
+  "حرف جر": { en: "preposition", fr: "préposition", de: "Präposition" },
+  "أداة ربط": { en: "conjunction", fr: "conjonction", de: "Konjunktion" },
+  "رقم": { en: "numeral", fr: "numéral", de: "Numerus" }
+};
+function localizeKind(k) {
+  const v = String(k || "").trim();
+  if (!v || currentLang === "ar") return v;
+  if (/فعل/.test(v)) return { en: "verb", fr: "verbe", de: "Verb" }[currentLang];
+  return KIND_MAP[v]?.[currentLang] || v;
+}
+const COPTIC_MONTHS = {
+  ar: ["توت","بابه","هاتور","كيهك","طوبة","أمشير","برمهات","برمودة","بشنس","بؤونة","أبيب","مسرى","النسئ"],
+  en: ["Thout","Paopi","Hathor","Koiak","Toba","Meshir","Paremhat","Parmouti","Pashons","Paoni","Epip","Mesori","Nasie"],
+  fr: ["Thout","Paopi","Hathor","Koiak","Toba","Meshir","Paremhat","Parmouti","Pashons","Paoni","Épiph","Mesori","Nasie"],
+  de: ["Thout","Paopi","Hathor","Koiak","Toba","Meshir","Paremhat","Parmute","Pachons","Paoni","Epip","Mesori","Nasie"]
+};
 const make = (tag, attrs = {}, ...children) => {
   const node = document.createElement(tag);
   for (const [key, value] of Object.entries(attrs)) {
@@ -87,7 +130,7 @@ function toast(text) {
 function playSfx(id) { /* أصوات الأزرار معطلة */ }
 function updateDate() {
   const now = new Date();
-  const months = ["توت","بابه","هاتور","كيهك","طوبة","أمشير","برمهات","برمودة","بشنس","بؤونة","أبيب","مسرى","النسئ"];
+  const months = COPTIC_MONTHS[currentLang] || COPTIC_MONTHS.ar;
   const epoch = new Date(284, 7, 29);
   const diff = Math.floor((now - epoch) / 86400000);
   const year = Math.floor(diff / 365.25);
@@ -246,9 +289,9 @@ async function shareCard(card, record, query) {
   playSfx("clickSound");
   const stage = $("shareStage");
   const refs = Array.isArray(record.referenceMatches) ? record.referenceMatches : [];
-  const originalMeaning = refs.find((item) => item.meaning)?.meaning || record.meanings.join("، ");
+  const originalMeaning = meaningFor(record) || refs.find((item) => item.meaning)?.meaning || record.meanings.join("، ");
   const info = make("div", { class: "share-information" });
-  for (const [label, value] of [[t("fieldWord"), clean(record.coptic)], [t("fieldMeaning"), originalMeaning], [t("fieldKind"), record.kind], [t("fieldOrigin"), record.origin]]) {
+  for (const [label, value] of [[t("fieldWord"), clean(record.coptic)], [t("fieldMeaning"), originalMeaning], [t("fieldKind"), localizeKind(record.kind)], [t("fieldOrigin"), localizeOrigin(record.origin)]]) {
     if (!value) continue;
     const line = make("p"); line.append(make("strong", { text: `${label}: ` }), document.createTextNode(value)); info.append(line);
   }
@@ -280,6 +323,7 @@ async function shareCard(card, record, query) {
     children.push(qrBlock);
   }
   const exportNode = make("div", { class: "share-export" }, ...children);
+  exportNode.dir = currentLang === "ar" ? "rtl" : "ltr"; // اتجاه صحيح حسب لغة الواجهة (لا معكوس)
   stage.replaceChildren(exportNode);
   try {
     await Promise.all([...exportNode.querySelectorAll("img")].map((img) => img.decode().catch(() => {})));
@@ -312,8 +356,8 @@ async function createResultCard(item, query, index, selectedMeaning) {
   const phonetic = clean(record.pronunciation || record.phonetic || "");
   if (phonetic) header.append(make("div", { class: "card-phonetic", text: phonetic }));
   const reference = Array.isArray(record.referenceMatches) ? record.referenceMatches[0] : null;
-  const kind = reference?.kind || record.kind;
-  const origin = reference?.origin || record.origin;
+  const kind = localizeKind(reference?.kind || record.kind);
+  const origin = localizeOrigin(reference?.origin || record.origin);
   if (kind || origin) {
     const badges = make("div", { class: "card-badges" });
     if (kind) badges.append(make("span", { class: "badge badge-kind", text: kind }));
@@ -323,12 +367,14 @@ async function createResultCard(item, query, index, selectedMeaning) {
   card.append(header);
 
   const info = make("div", { class: "info-section" });
-  const meaning = make("div", { class: "result-line meaning-line" });
-  meaning.append(make("strong", { text: `${t("fieldMeaning")}:` }));
-  const meaningContent = make("span"); meaningContent.append(renderMeaning(record.meaning || item.meaning, query, selectedMeaning));
-  if (!/[\u0600-\u06ff]/u.test(record.meaning || item.meaning || "")) {
+  const displayMeaning = meaningFor(record) || item.meaning || "";
+  const meaning = make("div", { class: "meaning-box" });
+  meaning.append(make("div", { class: "meaning-box-label", text: t("fieldMeaning") }));
+  const meaningContent = make("div", { class: "meaning-box-text" }); meaningContent.append(renderMeaning(displayMeaning, query, selectedMeaning));
+  meaning.append(meaningContent);
+  if (!/[\u0600-\u06ff]/u.test(displayMeaning)) {
     const copy = make("button", { class: "copy-button", type: "button", title: "نسخ المعنى", "aria-label": "نسخ المعنى", text: "▢" });
-    copy.addEventListener("click", async () => { try { await navigator.clipboard.writeText(record.meaning || item.meaning); playSfx("copySound"); toast(t("copied")); } catch { toast(t("copyError")); } });
+    copy.addEventListener("click", async () => { try { await navigator.clipboard.writeText(displayMeaning); playSfx("copySound"); toast(t("copied")); } catch { toast(t("copyError")); } });
     meaningContent.append(copy);
   }
   meaning.append(meaningContent); info.append(meaning);
@@ -467,7 +513,7 @@ async function loadWordOfDay() {
     const coptic = clean(record.coptic).trim();
     const meaning = parts(record.meaning || "")[0];
     if (!coptic || !meaning || coptic.length > 14 || meaning.length > 48) continue;
-    return { id, coptic, meaning, fullMeaning: record.meaning };
+    return { id, coptic, meaning, fullMeaning: record.meaning, english: record.english, translation_en: record.translation_en, translation_fr: record.translation_fr, translation_de: record.translation_de, kind: record.kind, origin: record.origin };
   }
   return null;
 }
@@ -477,7 +523,7 @@ function renderWordOfDay() {
   el.replaceChildren(
     make("span", { class: "wotd-label", text: t("wotdLabel") }),
     make("span", { class: "wotd-word cop", text: wotdEntry.coptic }),
-    make("span", { class: "wotd-meaning", text: wotdEntry.meaning }));
+    make("span", { class: "wotd-meaning", text: meaningFor(wotdEntry) }));
   el.hidden = false;
 }
 $("wotd").addEventListener("click", () => {
