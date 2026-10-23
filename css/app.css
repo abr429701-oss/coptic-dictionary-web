@@ -146,5 +146,7 @@
 .menu-item.ext:after{content:"↗";margin-inline-start:auto;color:var(--faint)}
 .menu-item .notification-badge{position:static;margin-inline-start:auto;min-width:20px;height:20px;font-size:11px;box-shadow:none}
 .menu-sep{width:100%;height:1px;margin:4px 0;border:0;background:var(--line)}
+.menu-label{padding:8px 14px 2px;color:var(--faint);font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.menu-label{padding:8px 14px 2px;color:var(--faint);font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
 :root[data-theme=dark] .menu-item:hover,:root[data-theme=dark] .menu-item:focus-visible{background:rgba(239,230,210,.07)}
 @media(max-width:700px){.menu-toggle{width:40px;height:40px}}
