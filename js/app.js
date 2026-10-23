@@ -135,9 +135,7 @@ function renderSuggestions(query, rows) {
   suggestions.replaceChildren(...options.map((option) => {
     const isCopticWord = option.word === option.coptic;
     const wordSpan = make("span", { class: "s-word" + (isCopticWord ? " cop" : ""), text: option.word });
-    const subText = isCopticWord ? (option.meaning || "") : option.coptic;
-    const subSpan = make("span", { class: "s-meaning" + (isCopticWord ? "" : " cop"), text: subText });
-    const button = make("button", { class: "suggestion", type: "button", role: "option" }, wordSpan, subSpan);
+    const button = make("button", { class: "suggestion", type: "button", role: "option" }, wordSpan);
     button.addEventListener("click", () => { input.value = option.word; suggestions.hidden = true; void performSearch(option.word); });
     return make("li", {}, button);
   }));
@@ -402,7 +400,6 @@ function buildResultItem(entry, query, index) {
   const main = make("span", { class: "ri-word" + (entry.copticPrimary ? " cop" : ""), text: entry.primary });
   if (entry.match) main.classList.add("ri-word-match");
   btn.append(main);
-  if (entry.secondary) btn.append(make("span", { class: "ri-sub" + (entry.copticPrimary ? "" : " cop"), text: entry.secondary }));
   btn.addEventListener("click", () => { void showDetail(entry.item, query, entry.word); });
   return btn;
 }
