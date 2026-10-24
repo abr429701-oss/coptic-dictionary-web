@@ -293,9 +293,14 @@ async function shareCard(card, record, query) {
   // باركود تحميل التطبيق (نفس نظام نافذة التحميل) أسفل البطاقة
   const appLink = await fetchLatestAppLink();
   if (appLink) {
-    const qr = make("img", { class: "share-qr", alt: "", width: "150", height: "150" });
-    qr.crossOrigin = "anonymous";
-    qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(appLink)}`;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=8&data=${encodeURIComponent(appLink)}`;
+    let qrSrc = qrUrl;
+    try { // حوّل الباركود إلى data URL لضمان ظهوره في الصورة المنزلة
+      const resp = await fetch(qrUrl);
+      const blob = await resp.blob();
+      qrSrc = await new Promise((resolve, reject) => { const fr = new FileReader(); fr.onload = () => resolve(fr.result); fr.onerror = reject; fr.readAsDataURL(blob); });
+    } catch { /* احتياط: استخدم الرابط المباشر */ }
+    const qr = make("img", { class: "share-qr", alt: "", width: "150", height: "150", src: qrSrc });
     children.push(make("footer", { class: "share-foot" }, qr, make("p", { class: "share-qr-caption", text: t("shareApp") })));
   }
   const exportNode = make("div", { class: "share-export", dir, lang }, ...children);
