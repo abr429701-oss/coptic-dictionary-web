@@ -206,3 +206,10 @@
 .share-foot{display:flex;align-items:center;justify-content:center;gap:22px}
 .share-qr{width:150px;height:150px;padding:8px;border:1px solid var(--line-strong);border-radius:12px;background:#fff;object-fit:contain}
 .share-qr-caption{max-width:420px;margin:0;color:var(--navy);font-size:24px;font-weight:700;line-height:1.5;text-align:start}
+.card-actions{margin-top:14px}
+.share-card-btn{width:100%;min-height:50px;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 18px;border:0;border-radius:14px;background:linear-gradient(135deg,var(--red),var(--red-soft));color:#fff;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 10px 24px -10px rgba(181,75,60,.5);transition:transform .2s ease,filter .2s ease,opacity .2s ease}
+.share-card-btn:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.05)}
+.share-card-btn:disabled{opacity:.7;cursor:wait}
+.share-card-icon{font-size:18px}
+.share-card-btn.is-loading .share-card-icon{animation:spin .8s linear infinite}
+.audio-player-container{grid-template-columns:auto minmax(70px,1fr) auto auto auto!important}

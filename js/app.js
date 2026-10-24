@@ -192,8 +192,6 @@ function buildAudioPlayer(record, query) {
     return sourcePromise;
   }
   const play = make("button", { class: "audio-control", type: "button", title: t("audioPlay"), "aria-label": t("audioPlay"), text: "▶" });
-  const mute = make("button", { class: "audio-control", type: "button", title: t("audioMute"), "aria-label": t("audioMute"), text: "🔊" });
-  const volume = make("input", { class: "audio-volume", type: "range", min: "0", max: "1", step: "0.01", value: "1", "aria-label": t("audioVolume") });
   const progress = make("div", { class: "audio-progress", role: "slider", tabindex: "0", "aria-label": t("audioPosition"), "aria-valuemin": "0", "aria-valuemax": "100", "aria-valuenow": "0" });
   const progressFill = make("span"); progress.append(progressFill);
   const elapsed = make("span", { class: "audio-time", text: "00:00" });
@@ -213,8 +211,6 @@ function buildAudioPlayer(record, query) {
   audio.addEventListener("loadedmetadata", () => { duration.textContent = formatTime(audio.duration); });
   audio.addEventListener("timeupdate", () => { elapsed.textContent = formatTime(audio.currentTime); const pct = audio.duration ? audio.currentTime / audio.duration * 100 : 0; progressFill.style.width = `${pct}%`; progress.setAttribute("aria-valuenow", String(Math.round(pct))); });
   audio.addEventListener("pause", () => { if (!audio.ended) play.textContent = "▶"; });
-  mute.addEventListener("click", () => { audio.muted = !audio.muted; mute.textContent = audio.muted ? "🔇" : "🔊"; });
-  volume.addEventListener("input", () => { audio.volume = Number(volume.value); if (audio.volume) audio.muted = false; mute.textContent = audio.muted ? "🔇" : "🔊"; });
   const seek = (event) => { if (!audio.src || !Number.isFinite(audio.duration)) return; const rect = progress.getBoundingClientRect(); const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)); audio.currentTime = ratio * audio.duration; };
   progress.addEventListener("click", seek);
   progress.addEventListener("keydown", (event) => { if (["ArrowLeft","ArrowRight"].includes(event.key) && audio.src && Number.isFinite(audio.duration)) { audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + (event.key === "ArrowRight" ? 5 : -5))); } });
@@ -224,7 +220,7 @@ function buildAudioPlayer(record, query) {
     const anchor = make("a", { href: src.url, download: `${clean(record.coptic).replace(/\s+/g,"_")}-${src.name}`, target: "_blank", rel: "noopener noreferrer" });
     document.body.append(anchor); anchor.click(); anchor.remove(); playSfx("copySound");
   });
-  player.append(play, mute, volume, progress, elapsed, duration, download);
+  player.append(play, progress, elapsed, duration, download);
   player._audio = audio;
   return player;
 }
@@ -262,8 +258,22 @@ function factList(facts, className) {
 }
 const textDir = (lang) => (lang === "ar" ? "rtl" : "ltr");
 
-async function shareCard(card, record, query) {
-  if (typeof window.html2canvas !== "function") { toast(t("shareToolError")); return; }
+let h2cPromise = null;
+function ensureHtml2Canvas() {
+  if (typeof window.html2canvas === "function") return Promise.resolve(window.html2canvas);
+  if (h2cPromise) return h2cPromise;
+  h2cPromise = new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
+    s.onload = () => { if (typeof window.html2canvas === "function") resolve(window.html2canvas); else reject(new Error("html2canvas missing")); };
+    s.onerror = () => { h2cPromise = null; reject(new Error("html2canvas load failed")); };
+    document.head.append(s);
+  });
+  return h2cPromise;
+}
+async function shareCard(card, record, query, btn) {
+  if (btn) { btn.disabled = true; btn.classList.add("is-loading"); }
+  try { await ensureHtml2Canvas(); } catch { toast(t("shareToolError")); if (btn) { btn.disabled = false; btn.classList.remove("is-loading"); } return; }
   playSfx("clickSound");
   const lang = currentLang, dir = textDir(lang), now = new Date();
   const stage = $("shareStage");
@@ -324,13 +334,11 @@ async function shareCard(card, record, query) {
       const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 3000);
     }
   } catch (error) { console.error(error); toast(t("shareError")); }
-  finally { stage.replaceChildren(); }
+  finally { stage.replaceChildren(); if (btn) { btn.disabled = false; btn.classList.remove("is-loading"); } }
 }
 async function createResultCard(item, query, index, selectedMeaning) {
   const record = await detail(item.id);
   const card = make("article", { class: "result-card" });
-  const share = make("button", { class: "share-button", type: "button", title: t("shareCardTitle"), "aria-label": t("shareCardTitle"), text: "↗" });
-  share.addEventListener("click", () => void shareCard(card, record, query)); card.append(share);
 
   // الكلمة القبطية كبيرة + النطق
   const hero = make("header", { class: "card-hero" });
@@ -363,6 +371,10 @@ async function createResultCard(item, query, index, selectedMeaning) {
   if (factsNode) card.append(factsNode);
 
   card.append(make("div", { class: "card-audio" }, buildAudioPlayer(record, query)));
+  const shareBtn = make("button", { class: "share-card-btn", type: "button" });
+  shareBtn.append(make("span", { class: "share-card-icon", text: "↗" }), make("span", { text: t("shareCardTitle") }));
+  shareBtn.addEventListener("click", () => void shareCard(card, record, query, shareBtn));
+  card.append(make("div", { class: "card-actions" }, shareBtn));
   return card;
 }
 let liveSeq = 0;
