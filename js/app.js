@@ -172,6 +172,22 @@ function resolveAudio(record) {
   if (record.aid != null) return { url: `${AUDIO_BASE}/${record.aid}.ogg`, name: `${record.aid}.ogg` };
   return null;
 }
+// ذاكرة صوت مسبقة: يُجلب ملف الصوت فور عرض البطاقة (وليس عند الإرسال) حتى تكون المشاركة فورية بلا أي انتظار
+const audioBlobCache = new Map();
+function prefetchAudio(record) {
+  const src = resolveAudio(record);
+  if (!src || audioBlobCache.has(src.url)) return;
+  const promise = fetch(src.url).then((response) => { if (!response.ok) throw new Error("audio fetch failed"); return response.blob(); }).catch(() => { audioBlobCache.delete(src.url); return null; });
+  audioBlobCache.set(src.url, promise);
+}
+async function getAudioFile(record) {
+  const src = resolveAudio(record);
+  if (!src) return null;
+  if (!audioBlobCache.has(src.url)) prefetchAudio(record); // احتياط فقط: في المسار الطبيعي يكون المخزون جاهزًا
+  const blob = await audioBlobCache.get(src.url);
+  if (!blob) return null;
+  return new File([blob], src.name || "coptic-pronunciation.ogg", { type: blob.type || "audio/ogg" });
+}
 function formatTime(time) {
   if (!Number.isFinite(time)) return "00:00";
   const m = Math.floor(time / 60), s = Math.floor(time % 60).toString().padStart(2, "0");
@@ -328,13 +344,35 @@ async function shareCard(card, record, query, btn) {
     const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
     if (!blob) throw new Error("image export failed");
     const filename = `${safeFilename(query)}-${safeFilename(record.coptic)}.png`;
-    if (navigator.share && navigator.canShare?.({ files: [new File([blob], filename, { type: "image/png" })] })) {
-      await navigator.share({ title: t("shareTitle"), files: [new File([blob], filename, { type: "image/png" })] });
+    // إرسال واحد فوري: النص حقل مستقل + الصورة + ملف الصوت كمرفق منفصل (جاهز مسبقًا في الذاكرة)
+    const shareText = shareBody(record, query, localized, lang);
+    const files = [new File([blob], filename, { type: "image/png" })];
+    const audioFile = await getAudioFile(record); // بلا انتظار شبكة: مُخزَّن مسبقًا عند عرض البطاقة
+    if (audioFile) files.push(audioFile);
+    if (navigator.share && navigator.canShare?.({ files })) {
+      try { await navigator.share({ title: t("shareTitle"), text: shareText, files }); }
+      catch (shareError) {
+        if (shareError?.name === "AbortError") throw shareError; // ألغى المستخدم نافذة المشاركة
+        // بعض التطبيقات لا تقبل النص مع الملفات: شارك الملفات وحدها
+        await navigator.share({ title: t("shareTitle"), files });
+      }
     } else {
       const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = filename; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 3000);
     }
   } catch (error) { console.error(error); toast(t("shareError")); }
   finally { stage.replaceChildren(); if (btn) { btn.disabled = false; btn.classList.remove("is-loading"); } }
+}
+// نص المشاركة: حقل مستقل تمامًا بلا أي رابط صوت أو مرفق داخل النص
+function shareBody(record, query, localized, lang) {
+  const lines = [clean(record.coptic) || query];
+  const phonetic = clean(record.pronunciation || record.phonetic || "");
+  if (phonetic) lines.push(phonetic);
+  const meaning = parts(localized.text).slice(0, 6).join("\n");
+  if (meaning) lines.push(`${t("fieldMeaning")}: ${meaning}`);
+  const facts = wordFacts(record, lang);
+  if (facts.kind) lines.push(`${t("fieldKind")}: ${facts.kind}`);
+  if (facts.origin) lines.push(`${t("fieldOrigin")}: ${facts.origin}`);
+  return lines.join("\n");
 }
 async function createResultCard(item, query, index, selectedMeaning) {
   const record = await detail(item.id);
@@ -371,6 +409,7 @@ async function createResultCard(item, query, index, selectedMeaning) {
   if (factsNode) card.append(factsNode);
 
   card.append(make("div", { class: "card-audio" }, buildAudioPlayer(record, query)));
+  humanAudioReady.catch(() => {}).then(() => prefetchAudio(record)); // اجلب الصوت مسبقًا لتجهيز المشاركة الفورية
   const shareBtn = make("button", { class: "share-card-btn", type: "button" });
   shareBtn.append(make("span", { class: "share-card-icon", text: "↗" }), make("span", { text: t("shareCardTitle") }));
   shareBtn.addEventListener("click", () => void shareCard(card, record, query, shareBtn));
