@@ -30,6 +30,12 @@ const I18N = {
   de: { searchPlaceholder:"Wort zum Suchen eingeben…", searchButton:"Suchen", searchHeading:"Von einem Wort zu einer Geschichte", loading:"Suche…", enterWord:"Bitte geben Sie ein Suchwort ein!", results:"{n} Ergebnisse", resultOne:"1 Ergebnis", noResult:"Dieses Wort ist noch nicht verfügbar; es wird bald hinzugefügt.", searchError:"Suchfehler; Verbindung prüfen und erneut versuchen.", detailError:"Details konnten nicht geladen werden.", moreResults:"Tippen für weitere Bedeutungen　⌄", backToResults:"Zurück zu den Ergebnissen", fieldWord:"Wort", fieldMeaning:"Bedeutung", fieldKind:"Typ", fieldOrigin:"Herkunft", audioUnavailable:"Keine Audiodatei zum Download verfügbar.", audioPlayError:"Audio konnte nicht abgespielt werden; Sprachsynthese versuchen.", speechUnavailable:"Keine Aussprache verfügbar.", copied:"Text kopiert", copyError:"Kopieren fehlgeschlagen", shareError:"Share-Karte konnte nicht erstellt werden.", shareToolError:"Bildtool konnte nicht geladen werden.", learnLink:"🤖 Telegram-Bot — Koptisches Wörterbuch", footerDesc:"Das Koptische Wörterbuch Ⲭⲏⲙⲓ ist das erste gesprochene koptische Wörterbuch im Internet. Es hilft Ihnen, Ihr Koptisch zu verbessern. Wir wünschen Ihnen ein einzigartiges Erlebnis.", downloadApp:"📱 App herunterladen", qrTitle:"Wörterbuch-App herunterladen", qrHint:"Scannen Sie den QR-Code mit der Kamera, um die App herunterzuladen", directDownload:"Oder hier klicken für Direktdownload ↓", qrError:"Download-Link konnte nicht abgerufen werden.", qrLoading:"Laden…", newNotification:"Neue Benachrichtigung!", notificationsTitle:"Neue Benachrichtigungen", skip:"Zur Suche springen", brandCaption:"ⲭⲏⲙⲓ · Koptisches Wörterbuch", shareTitle:"Koptisches Wörterbuch · ⲭⲏⲙⲓ", dateLocale:"de-DE", wotdLabel:"Wort des Tages", recentLabel:"Letzte Suchen", recentClear:"Löschen", entriesCount:"{n} Einträge im Wörterbuch", themeDark:"Dunkelmodus", themeLight:"Hellmodus", toTop:"Nach oben", menu:"Menü", notificationsMenu:"Benachrichtigungen", fieldGreek:"Griechisches Wort", fieldUsage:"Verwendung", fieldArabic:"Auf Arabisch", shareCardTitle:"Als Bild teilen", copyMeaning:"Bedeutung kopieren", audioPlay:"Aussprache abspielen oder pausieren", audioMute:"Stummschalten", audioVolume:"Lautstärke", audioPosition:"Wiedergabeposition", audioDownload:"Audio herunterladen", kbBackspace:"⌫ Löschen", kbClear:"Alles löschen", kbClose:"Schließen", notificationsLoading:"Benachrichtigungen werden geladen…", notificationsError:"Benachrichtigungen konnten gerade nicht geladen werden.", notificationsEmpty:"Keine neuen Benachrichtigungen", dictLoadError:"Das Wörterbuch konnte nicht geladen werden; Verbindung prüfen und Seite neu laden.", shareApp:"Koptisches Wörterbuch als App laden", contactUs:"Kontakt", whatsapp:"💬 WhatsApp", telegramContact:"✈️ Telegram" }
 };
 let currentLang = "ar";
+const LEARNING_PORTAL_LABELS = {
+  ar: "🎓 التعلم والامتحانات والنتائج والشهادات والرقم الكودي",
+  en: "🎓 Lessons, exams, results, certificates & student codes",
+  fr: "🎓 Leçons, examens, résultats, certificats et codes étudiants",
+  de: "🎓 Lektionen, Prüfungen, Ergebnisse, Zertifikate & Schülercodes"
+};
 function t(key, vars) {
   let val = (I18N[currentLang] || I18N.ar)[key] ?? I18N.ar[key] ?? key;
   if (vars) for (const [k, v] of Object.entries(vars)) val = val.replaceAll(`{${k}}`, String(v));
@@ -56,6 +62,7 @@ function setLang(lang) {
   $("searchButtonText").textContent = t("searchButton");
   $("searchHeading").textContent = t("searchHeading");
   $("loaderText").textContent = t("loading");
+  $("learningPortalLink").textContent = LEARNING_PORTAL_LABELS[lang] || LEARNING_PORTAL_LABELS.ar;
   $("learnLink").textContent = t("learnLink");
   $("notificationBar").textContent = t("newNotification");
   $("notificationsTitle").textContent = t("notificationsTitle");
