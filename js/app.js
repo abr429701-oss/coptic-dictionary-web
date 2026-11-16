@@ -31,10 +31,10 @@ const I18N = {
 };
 let currentLang = "ar";
 const LEARNING_PORTAL_LABELS = {
-  ar: "🎓 التعلم والامتحانات والنتائج والشهادات والرقم الكودي",
-  en: "🎓 Lessons, exams, results, certificates & student codes",
-  fr: "🎓 Leçons, examens, résultats, certificats et codes étudiants",
-  de: "🎓 Lektionen, Prüfungen, Ergebnisse, Zertifikate & Schülercodes"
+  ar: "🎓 تعلم اللغة القبطية",
+  en: "🎓 Learn the Coptic language",
+  fr: "🎓 Apprendre la langue copte",
+  de: "🎓 Koptisch lernen"
 };
 function t(key, vars) {
   let val = (I18N[currentLang] || I18N.ar)[key] ?? I18N.ar[key] ?? key;
